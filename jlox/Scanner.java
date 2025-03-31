@@ -9,15 +9,15 @@ public class Scanner {
     private final String source;
     private final List<Token> tokens = new ArrayList<>();
 
-    private int start = 0, current = 0, line = 1;
+    private int start = 0, current = 0, line = 1, end;
 
     public Scanner(String source) {
         this.source = source;
+        this.end = source.length();
     }
 
     List<Token> scanTokens() {
-        final int sourceLength = source.length();
-        while (current < sourceLength) {
+        while (current < end) {
             start = current;
             next();
         }
@@ -30,46 +30,76 @@ public class Scanner {
         char character = this.source.charAt(current++);
         switch (character) {
             case '(':
-                addToken(LEFT_PAREN);
+                this.addToken(LEFT_PAREN);
                 break;
             case ')':
-                addToken(RIGHT_PAREN);
+                this.addToken(RIGHT_PAREN);
                 break;
             case '{':
-                addToken(LEFT_BRACE);
+                this.addToken(LEFT_BRACE);
                 break;
             case '}':
-                addToken(RIGHT_BRACE);
+                this.addToken(RIGHT_BRACE);
                 break;
             case '[':
-                addToken(LEFT_BRACKET);
+                this.addToken(LEFT_BRACKET);
                 break;
             case ']':
-                addToken(RIGHT_BRACKET);
+                this.addToken(RIGHT_BRACKET);
                 break;
             case ',':
-                addToken(COMMA);
+                this.addToken(COMMA);
                 break;
             case '.':
-                addToken(DOT);
+                this.addToken(DOT);
                 break;
             case '-':
-                addToken(MINUS);
+                this.addToken(MINUS);
                 break;
             case '+':
-                addToken(PLUS);
+                this.addToken(PLUS);
                 break;
             case ';':
-                addToken(SEMICOLON);
+                this.addToken(SEMICOLON);
                 break;
             case '*':
-                addToken(STAR);
+                this.addToken(STAR);
                 break;
             case '\'':
-                addToken(QUOTATION);
+                this.addToken(QUOTATION);
                 break;
             case '\"':
-                addToken(DOUBLE_QUOTATION);
+                this.addToken(DOUBLE_QUOTATION);
+                break;
+            case '!':
+                this.addToken(this.isNextOne('=') ? BANG_EQUAL : BANG);
+                break;
+            case '=':
+                this.addToken(this.isNextOne('=') ? EQUAL_EQUAL : EQUAL);
+                break;
+            case '<':
+                this.addToken(this.isNextOne('=') ? LESS_EQUAL : LESS);
+                break;
+            case '>':
+                this.addToken(this.isNextOne('=') ? GREATER_EQUAL : GREATER);
+                break;
+            case '/':
+                if (this.isNextOne('/')) {
+                    while (this.current < this.end && this.source.charAt(this.current++) != '\n')
+                    line++;
+                } else {
+                    this.addToken(FORTH_SLASH);
+                }
+                break;
+            // TODO: BACK_SLASH and escape characters
+            case '\n':
+                line++;
+            case ' ':
+            case '\t':
+            case '\r':
+                break;
+            default:
+                Lox.error(line, "Unexpected symbol!");
                 break;
         }
     }
@@ -81,5 +111,14 @@ public class Scanner {
     private void addToken(TokenType type, Object literal) {
         // TODO: Replace substring usage with manual concating characters
         tokens.add(new Token(type, source.substring(start, current), literal, line));
+    }
+
+    private boolean isNextOne(char what) {
+        if (this.current < this.end && this.source.charAt(this.current) == what) {
+            current++;
+            return true;
+        }
+
+        return false;
     }
 }
