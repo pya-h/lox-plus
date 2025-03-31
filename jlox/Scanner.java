@@ -27,8 +27,8 @@ public class Scanner {
     }
 
     private void next() {
-        char character = this.source.charAt(current++);
-        switch (character) {
+        char symbol = this.source.charAt(current++);
+        switch (symbol) {
             case '(':
                 this.addToken(LEFT_PAREN);
                 break;
@@ -66,10 +66,11 @@ public class Scanner {
                 this.addToken(STAR);
                 break;
             case '\'':
-                this.addToken(QUOTATION);
-                break;
-            case '\"':
-                this.addToken(DOUBLE_QUOTATION);
+            case '"':
+                final String strLiteral = this.extractNextString();
+                if (strLiteral != null) {
+                    this.addToken(STRING, strLiteral);
+                }
                 break;
             case '!':
                 this.addToken(this.isNextOne('=') ? BANG_EQUAL : BANG);
@@ -86,7 +87,7 @@ public class Scanner {
             case '/':
                 if (this.isNextOne('/')) {
                     while (this.current < this.end && this.source.charAt(this.current++) != '\n')
-                    line++;
+                        line++;
                 } else {
                     this.addToken(FORTH_SLASH);
                 }
@@ -99,7 +100,11 @@ public class Scanner {
             case '\r':
                 break;
             default:
-                Lox.error(line, "Unexpected symbol!");
+                if (this.isDigit(symbol)) {
+                    this.extractAndAddNextNumber();
+                } else {
+                    Lox.error(line, "Unexpected symbol!");
+                }
                 break;
         }
     }
@@ -110,7 +115,7 @@ public class Scanner {
 
     private void addToken(TokenType type, Object literal) {
         // TODO: Replace substring usage with manual concating characters
-        tokens.add(new Token(type, source.substring(start, current), literal, line));
+        tokens.add(new Token(type, source.substring(this.start, this.current), literal, line));
     }
 
     private boolean isNextOne(char what) {
@@ -120,5 +125,53 @@ public class Scanner {
         }
 
         return false;
+    }
+
+    private String extractNextString() {
+        final char sign = this.source.charAt(this.start);
+        if (sign != '"' && sign != '\'') {
+            Lox.error(this.line, "Invalid String!");
+            return null;
+        }
+        char next = this.source.charAt(this.current++);
+        for (; next != sign && current < end; next = this.source.charAt(current++)) {
+            if (next == '\n') {
+                this.line++;
+            }
+        }
+
+        if (next != sign) {
+            Lox.error(this.line, "Unterminated string!");
+            return null;
+        }
+        return source.substring(this.start + 1, this.current - 1);
+    }
+
+    private boolean isDigit(char c) {
+        return (c >= '0' && c <= '9') || c == '.';
+    }
+
+    private void extractAndAddNextNumber() {
+        char next = this.source.charAt(this.start);
+        if (!this.isDigit(next)) {
+            Lox.error(this.line, "Invalid numerical value!");
+            return;
+        }
+        boolean dotAppeared = next == '.';
+
+        while (this.current < this.end && this.isDigit((next = this.source.charAt(this.current)))) {
+            if (next == '.') {
+                if (dotAppeared) {
+                    // TODO: First check method call on numbers
+                    Lox.error(this.line, "Invalid decimal!");
+                    return;
+                }
+                dotAppeared = true;
+            }
+            this.current++;
+        }
+        addToken(NUMBER, dotAppeared ? Double.parseDouble(this.source.substring(this.start, this.current))
+                : Integer.parseInt(this.source.substring(this.start, this.current)));
+
     }
 }
