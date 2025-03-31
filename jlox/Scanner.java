@@ -88,6 +88,28 @@ public class Scanner {
                 if (this.isNextOne('/')) {
                     while (this.current < this.end && this.source.charAt(this.current++) != '\n')
                         line++;
+                } else if (this.isNextOne('*')) {
+                    int comments = 1;
+                    this.current++;
+                    while (this.current < this.end && comments > 0) {
+                        final char ch = this.source.charAt(this.current++);
+                        if (ch == '*') {
+                            if (this.isNextOne('/')) {
+                                comments--;
+                                this.current++;
+                            }
+                        } else if (ch == '/') {
+                            if (this.isNextOne('*')) {
+                                comments++;
+                                this.current++;
+                            }
+                        } else if(ch == '\n') {
+                            this.line++;
+                        }
+                    }
+                    if(comments > 0) {
+                        Lox.error(this.line, "Unclosed multi-line comment(s)!");
+                    }
                 } else {
                     this.addToken(FORTH_SLASH);
                 }
