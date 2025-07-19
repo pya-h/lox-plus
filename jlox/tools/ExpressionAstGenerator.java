@@ -31,6 +31,9 @@ public class ExpressionAstGenerator {
         writer.println("package jlox;\n");
         writer.println("public abstract class " + baseClass + " {");
         final Set<String> childNames = subClasses.keySet();
+
+        defineVisitor(writer, baseClass, childNames);
+
         for (String className : childNames) {
             String tabs = "\t";
             writer.println(tabs + "public static class " + className + " extends " + baseClass + " {");
@@ -55,9 +58,22 @@ public class ExpressionAstGenerator {
                     constructorBody += "\n";
                 }
             }
-            writer.println("\n" + constructorDecleration + " {" + constructorBody + subClassTabs + "}\n" + tabs + "}\n");
+            writer.println("\n" + constructorDecleration + " {" + constructorBody + subClassTabs + "}\n");
+
+            writer.println(tabs + "\t@Override<T>\n" + tabs + "\tT accept(Visitor<T> visitor) {");
+            writer.println(tabs + "\t\treturn visitor.visit" + className + baseClass + "(this);\n" + tabs + "\t}");
+            writer.println(tabs + "}\n");
         }
-        writer.println("}");
+        writer.println("\tabstract <T> T accept(Visitor<T> visitor);\n}");
         writer.close();
+    }
+
+    public static void defineVisitor(PrintWriter writer, final String baseClass, final Set<String> subClasses) {
+        writer.println("\tpublic interface Visitor<T> {");
+
+        for(String cls: subClasses) {
+            writer.println("\t\tT visit" + cls + baseClass + "(" + cls + " " + baseClass.toLowerCase() + ");");
+        }
+        writer.println("\t}\n");
     }
 }
