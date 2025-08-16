@@ -1,6 +1,5 @@
 package jlox;
 
-
 public class AstPrinter implements Expression.Visitor<String> {
     String print(Expression expression) {
         return expression.accept(this);
@@ -8,7 +7,7 @@ public class AstPrinter implements Expression.Visitor<String> {
 
     @Override
     public String visitLiteralExpression(Expression.Literal expr) {
-        if(expr.value == null) {
+        if (expr.value == null) {
             return "nil";
         }
         return expr.value.toString();
@@ -29,9 +28,13 @@ public class AstPrinter implements Expression.Visitor<String> {
         return wrapExpression("Group", expr.expression);
     }
 
-    public static String wrapExpression(String operatorName, Expression ...exprs) {
+    public String wrapExpression(String operatorName, Expression... exprs) {
         StringBuilder builder = new StringBuilder();
-        // TODO:
-        return builder.toString();
+        builder.append("(").append(operatorName);
+        for (Expression x : exprs) {
+            builder.append(" ");
+            builder.append(x.accept(this));
+        }
+        return builder.append(")").toString();
     }
 }
