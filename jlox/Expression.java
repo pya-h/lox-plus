@@ -52,9 +52,11 @@ public abstract class Expression {
 	}
 
 	public static class Unary extends Expression {
+		final Token operator;
 		final Expression right;
 
-		public Unary(Expression right) {
+		public Unary(Token operator, Expression right) {
+			this.operator = operator;
 			this.right = right;
 		}
 

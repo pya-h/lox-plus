@@ -19,7 +19,7 @@ public class ExpressionAstGenerator {
         final String outDir = args[0], baseClass = args[1];
         final Map<String, List<String>> childs = new HashMap<>();
         childs.put("Binary", Arrays.asList(baseClass + " left", "Token operator", baseClass + " right"));
-        childs.put("Unary", Arrays.asList(baseClass + " right"));
+        childs.put("Unary", Arrays.asList("Token operator", baseClass + " right"));
         childs.put("Literal", Arrays.asList("Object value"));
         childs.put("Grouping", Arrays.asList(baseClass + " expression"));
         generate(outDir, baseClass, childs);
