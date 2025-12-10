@@ -67,14 +67,43 @@ public class Parser {
     }
 
     private Expression unary() {
-        if(this.matches(BANG, MINUS)) {
+        if (this.matches(BANG, MINUS)) {
             Token operator = tokens.get(this.position - 1);
             return new Expression.Unary(operator, this.unary());
         }
         return primary();
     }
 
-    private Expression primary() {
+    private Token expect(TokenType expectedType, final String otherwiseError) {
+        Token tk = this.currentToken();
+        if (tk != null && tk.type == expectedType) {
+            return tk;
+        }
+        throw new Error(otherwiseError);
+    }
 
+    private Expression primary() {
+        final Token token = this.currentToken();
+        if(token != null) {
+            switch(token.type) {
+                case TRUE:
+                    return new Expression.Literal(true);
+                case FALSE:
+                    return new Expression.Literal(false);
+                case NIL:
+                    return new Expression.Literal(null);
+                case STRING:
+                case NUMBER:
+                    return new Expression.Literal(token.literal);
+                case LEFT_PAREN: {
+                    Expression inside = this.expression();
+                    this.expect(RIGHT_PAREN, "Unclosed parenthesis detected!");
+                    return new Expression.Grouping(inside);
+                }
+                default:
+                    break;
+            }
+        }
+        throw new Error("Not Implemented yet!"); // TODO: What happens to EOF and null or whatever?
     }
 }
