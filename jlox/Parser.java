@@ -1,0 +1,80 @@
+package jlox;
+
+import java.util.List;
+import static jlox.TokenType.*;
+import java.util.function.Supplier;
+
+public class Parser {
+    private final List<Token> tokens;
+    private int position = 0;
+
+    public Parser(List<Token> tokens) {
+        this.tokens = tokens;
+    }
+
+    private Token currentToken() {
+        if (this.tokens.size() < this.position) {
+            Token token = this.tokens.get(this.position);
+            if (token != null && token.type != EOF) {
+                this.position++;
+                return token;
+            }
+        }
+        return null;
+    }
+
+    private boolean matches(TokenType... types) {
+        final Token token = this.currentToken();
+        if (token == null)
+            return false;
+
+        for (TokenType tokenType : types) {
+            if (tokenType == token.type)
+                return true;
+        }
+        return false;
+    }
+
+    private Expression expression() {
+        return equality();
+    }
+
+    private Expression parseBinaryExpression(Supplier<Expression> fnOperandParser, TokenType... acceptedOperators) {
+        Expression left = fnOperandParser.get();
+
+        while (matches(acceptedOperators)) {
+            Token operator = tokens.get(this.position - 1);
+            Expression right = fnOperandParser.get();
+            left = new Expression.Binary(left, operator, right);
+        }
+        return left;
+    }
+
+    private Expression equality() {
+        return this.parseBinaryExpression(this::comparison, EQUAL_EQUAL, BANG_EQUAL);
+    }
+
+    private Expression comparison() {
+        return this.parseBinaryExpression(this::term, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL);
+    }
+
+    private Expression term() {
+        return this.parseBinaryExpression(this::factor, PLUS, MINUS);
+    }
+
+    private Expression factor() {
+        return this.parseBinaryExpression(this::unary, STAR, FORTH_SLASH);
+    }
+
+    private Expression unary() {
+        if(this.matches(BANG, MINUS)) {
+            Token operator = tokens.get(this.position - 1);
+            return new Expression.Unary(operator, this.unary());
+        }
+        return primary();
+    }
+
+    private Expression primary() {
+
+    }
+}

@@ -15,12 +15,12 @@ public class AstPrinter implements Expression.Visitor<String> {
 
     @Override
     public String visitUnaryExpression(Expression.Unary expr) {
-        return wrapExpression(expr.operator.getLexeme(), expr.right);
+        return wrapExpression(expr.operator.lexeme, expr.right);
     }
 
     @Override
     public String visitBinaryExpression(Expression.Binary expr) {
-        return wrapExpression(expr.operator.getLexeme(), expr.left, expr.right);
+        return wrapExpression(expr.operator.lexeme, expr.left, expr.right);
     }
 
     @Override
