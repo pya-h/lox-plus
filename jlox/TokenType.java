@@ -10,10 +10,10 @@ enum TokenType {
     EQUAL, EQUAL_EQUAL,
     GREATER, GREATER_EQUAL,
     LESS, LESS_EQUAL,
- 
+
     // Literals.
     IDENTIFIER, STRING, NUMBER,
- 
+
     // Keywords.
     AND, CLASS, OTHERWISE, FALSE, FUN, FOR, IF, NIL, OR, XOR,
     PRINT, RETURN, PARENT, THIS, TRUE, DEF, LOOP,

@@ -1,10 +1,12 @@
 package jlox;
 
-import java.util.List;
 import static jlox.TokenType.*;
+
+import java.util.List;
 import java.util.function.Supplier;
 
 public class Parser {
+
     private final List<Token> tokens;
     private int position = 0;
 
@@ -39,7 +41,9 @@ public class Parser {
         return equality();
     }
 
-    private Expression parseBinaryExpression(Supplier<Expression> fnOperandParser, TokenType... acceptedOperators) {
+    private Expression parseBinaryExpression(
+            Supplier<Expression> fnOperandParser,
+            TokenType... acceptedOperators) {
         Expression left = fnOperandParser.get();
 
         while (matches(acceptedOperators)) {
@@ -51,11 +55,19 @@ public class Parser {
     }
 
     private Expression equality() {
-        return this.parseBinaryExpression(this::comparison, EQUAL_EQUAL, BANG_EQUAL);
+        return this.parseBinaryExpression(
+                this::comparison,
+                EQUAL_EQUAL,
+                BANG_EQUAL);
     }
 
     private Expression comparison() {
-        return this.parseBinaryExpression(this::term, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL);
+        return this.parseBinaryExpression(
+                this::term,
+                GREATER,
+                GREATER_EQUAL,
+                LESS,
+                LESS_EQUAL);
     }
 
     private Expression term() {
@@ -84,8 +96,8 @@ public class Parser {
 
     private Expression primary() {
         final Token token = this.currentToken();
-        if(token != null) {
-            switch(token.type) {
+        if (token != null) {
+            switch (token.type) {
                 case TRUE:
                     return new Expression.Literal(true);
                 case FALSE:

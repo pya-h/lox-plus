@@ -1,6 +1,7 @@
 package jlox;
 
 public class AstPrinter implements Expression.Visitor<String> {
+
     String print(Expression expression) {
         return expression.accept(this);
     }

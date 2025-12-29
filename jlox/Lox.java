@@ -9,14 +9,15 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class Lox {
+
     private static boolean hadError;
 
     public static void main(String[] args) throws IOException {
-        if(args.length > 1) {
+        if (args.length > 1) {
             System.out.println("Usage: jlox [script]");
             System.exit(64);
         }
-        if(args.length == 1) {
+        if (args.length == 1) {
             runScript(args[0]);
             return;
         }
@@ -30,13 +31,14 @@ public class Lox {
     }
 
     public static void runPrompt() throws IOException {
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        final BufferedReader reader = new BufferedReader(
+            new InputStreamReader(System.in)
+        );
 
-        while(true) {
+        while (true) {
             System.out.print("> ");
             final String line = reader.readLine();
-            if(line == null)
-                break;
+            if (line == null) break;
             run(line);
             hadError = false;
         }
@@ -47,11 +49,11 @@ public class Lox {
 
         List<Token> tokens = scanner.scanTokens();
 
-        for(Token token: tokens) {
+        for (Token token : tokens) {
             System.out.println(token.toString()); // TODO: process
         }
 
-        if(hadError) {
+        if (hadError) {
             System.exit(65);
         }
     }

@@ -3,8 +3,11 @@ package jlox;
 public abstract class Expression {
 	public interface Visitor<T> {
 		T visitLiteralExpression(Literal expression);
+
 		T visitGroupingExpression(Grouping expression);
+
 		T visitBinaryExpression(Binary expression);
+
 		T visitUnaryExpression(Unary expression);
 	}
 
@@ -15,8 +18,8 @@ public abstract class Expression {
 			this.value = value;
 		}
 
-		@Override<T>
-		T accept(Visitor<T> visitor) {
+		@Override
+		<T> T accept(Visitor<T> visitor) {
 			return visitor.visitLiteralExpression(this);
 		}
 	}
@@ -28,8 +31,8 @@ public abstract class Expression {
 			this.expression = expression;
 		}
 
-		@Override<T>
-		T accept(Visitor<T> visitor) {
+		@Override
+		<T> T accept(Visitor<T> visitor) {
 			return visitor.visitGroupingExpression(this);
 		}
 	}
@@ -45,8 +48,8 @@ public abstract class Expression {
 			this.right = right;
 		}
 
-		@Override<T>
-		T accept(Visitor<T> visitor) {
+		@Override
+		<T> T accept(Visitor<T> visitor) {
 			return visitor.visitBinaryExpression(this);
 		}
 	}
@@ -60,8 +63,8 @@ public abstract class Expression {
 			this.right = right;
 		}
 
-		@Override<T>
-		T accept(Visitor<T> visitor) {
+		@Override
+		<T> T accept(Visitor<T> visitor) {
 			return visitor.visitUnaryExpression(this);
 		}
 	}
