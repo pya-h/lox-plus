@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class Parser {
-
     private final List<Token> tokens;
     private int position = 0;
 
@@ -15,14 +14,24 @@ public class Parser {
     }
 
     private Token currentToken() {
-        if (this.tokens.size() < this.position) {
-            Token token = this.tokens.get(this.position);
-            if (token != null && token.type != EOF) {
-                this.position++;
-                return token;
-            }
+        if (this.tokens.size() > this.position) {
+            return this.tokens.get(this.position);
         }
         return null;
+    }
+
+    private Token takeItAndGo() {
+        Token token = this.currentToken();
+        this.position++;
+        return token;
+    }
+
+    public static class ParseError extends RuntimeException {
+    }
+
+    private ParseError error(Token token, String mssage) {
+        Lox.error(token, mssage);
+        return new ParseError();
     }
 
     private boolean matches(TokenType... types) {
@@ -31,8 +40,10 @@ public class Parser {
             return false;
 
         for (TokenType tokenType : types) {
-            if (tokenType == token.type)
+            if (tokenType == token.type) {
+                this.position++;
                 return true;
+            }
         }
         return false;
     }
@@ -88,15 +99,17 @@ public class Parser {
 
     private Token expect(TokenType expectedType, final String otherwiseError) {
         Token tk = this.currentToken();
-        if (tk != null && tk.type == expectedType) {
+        if (tk != null && tk.type != EOF && tk.type == expectedType) {
+            this.position++;
             return tk;
         }
-        throw new Error(otherwiseError);
+        throw error(tk, otherwiseError);
     }
 
+    @SuppressWarnings("incomplete-switch")
     private Expression primary() {
-        final Token token = this.currentToken();
-        if (token != null) {
+        final Token token = this.takeItAndGo();
+        if (token != null && token.type != EOF) {
             switch (token.type) {
                 case TRUE:
                     return new Expression.Literal(true);
@@ -112,10 +125,41 @@ public class Parser {
                     this.expect(RIGHT_PAREN, "Unclosed parenthesis detected!");
                     return new Expression.Grouping(inside);
                 }
-                default:
-                    break;
             }
         }
-        throw new Error("Not Implemented yet!"); // TODO: What happens to EOF and null or whatever?
+        throw error(token, "What The Actual FUCK?!");
+    }
+
+    @SuppressWarnings("incomplete-switch")
+    private void synchronize() {
+        final int tokensCount = this.tokens.size();
+        if (++this.position >= tokensCount) {
+            return;
+        }
+        for (Token token = this.tokens.get(this.position - 1); token.type != SEMICOLON
+                && this.position < tokensCount; this.position++) {
+            token = this.tokens.get(this.position);
+            switch (token.type) {
+                case CLASS:
+                case IF:
+                case OTHERWISE:
+                case FOR:
+                case LOOP:
+                case DEF:
+                case PRINT:
+                case RETURN:
+                case FUN:
+                case EOF:
+                    return;
+            }
+        }
+    }
+
+    public Expression parse() {
+        try {
+            return expression();
+        } catch (ParseError err) {
+            return null;
+        }
     }
 }
