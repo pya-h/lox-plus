@@ -9,6 +9,8 @@ public abstract class Expression {
 		T visitBinaryExpression(Binary expression);
 
 		T visitUnaryExpression(Unary expression);
+
+		T visitTernaryExpression(Ternary expTernary);
 	}
 
 	public static class Literal extends Expression {
@@ -34,6 +36,25 @@ public abstract class Expression {
 		@Override
 		<T> T accept(Visitor<T> visitor) {
 			return visitor.visitGroupingExpression(this);
+		}
+	}
+
+	public static class Ternary extends Expression {
+		final Expression left, middle, right;
+		final Token firstOperator, secondOperator;
+
+		public Ternary(Expression left, Token firstOperator, Expression middle, Token secondOperator,
+				Expression right) {
+			this.left = left;
+			this.firstOperator = firstOperator;
+			this.middle = middle;
+			this.secondOperator = secondOperator;
+			this.right = right;
+		}
+
+		@Override
+		<T> T accept(Visitor<T> visitor) {
+			return visitor.visitTernaryExpression(this);
 		}
 	}
 

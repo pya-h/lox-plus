@@ -38,4 +38,16 @@ public class AstPrinter implements Expression.Visitor<String> {
         }
         return builder.append(")").toString();
     }
+
+    @Override
+    public String visitTernaryExpression(Expression.Ternary expr) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("(").append(expr.firstOperator.lexeme + expr.secondOperator.lexeme);
+        Expression[] operands = { expr.left, expr.middle, expr.right };
+        for (Expression x : operands) {
+            builder.append(" ");
+            builder.append(x.accept(this));
+        }
+        return builder.append(")").toString();
+    }
 }

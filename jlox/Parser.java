@@ -49,7 +49,22 @@ public class Parser {
     }
 
     private Expression expression() {
-        return equality();
+        return this.ternary();
+    }
+
+    private Expression ternary() {
+        Expression left = this.equality();
+
+        while (this.matches(QUESTION)) {
+            Token operator = tokens.get(this.position - 1);
+            Expression middle = this.ternary();
+            if (this.matches(BANG)) {
+                Token secondOperator = tokens.get(this.position - 1);
+                Expression right = this.ternary();
+                left = new Expression.Ternary(left, operator, middle, secondOperator, right);
+            }
+        }
+        return left;
     }
 
     private Expression parseBinaryExpression(
