@@ -15,9 +15,18 @@ public abstract class Expression {
 
 	public static class Literal extends Expression {
 		final Object value;
+		final Literal.Types type;
 
-		public Literal(Object value) {
+		public static enum Types {
+			BOOL,
+			NUMERIC,
+			STRING,
+			NONE,
+		}
+
+		public Literal(Object value, Literal.Types type) {
 			this.value = value;
+			this.type = type;
 		}
 
 		@Override

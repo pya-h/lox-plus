@@ -62,9 +62,38 @@ public class Parser {
                 Token secondOperator = tokens.get(this.position - 1);
                 Expression right = this.ternary();
                 left = new Expression.Ternary(left, operator, middle, secondOperator, right);
+            } else {
+                throw error(operator, "Ternary operator: `" + operator.lexeme
+                        + "!` requires 3 operands, Which here the third one seems missing!");
             }
         }
         return left;
+    }
+
+    private Expression getRightHandOperandChecked(Token operator, Supplier<Expression> rhsParserFunction) {
+        Expression right;
+        try {
+            right = rhsParserFunction.get();
+        } catch (Exception ex) {
+            throw this.error(operator, "Missing right hand operand!");
+        }
+        // TODO: Improve error hamdling here...
+        if (right instanceof Expression.Literal) {
+            Expression.Literal literal = (Expression.Literal) right;
+            switch (literal.type) {
+                case Expression.Literal.Types.BOOL:
+                case Expression.Literal.Types.NONE:
+                    throw this.error(operator, "Invalid operand for `" + operator.lexeme + "`!");
+                case Expression.Literal.Types.STRING:
+                    if (operator.type != PLUS && operator.type != MINUS) {
+                        throw this.error(operator,
+                                "Invalid operator `" + operator.lexeme + "` used on string: '" + literal.value + "'!");
+                    }
+                default:
+                    break;
+            }
+        }
+        return right;
     }
 
     private Expression parseBinaryExpression(
@@ -74,7 +103,7 @@ public class Parser {
 
         while (matches(acceptedOperators)) {
             Token operator = tokens.get(this.position - 1);
-            Expression right = fnOperandParser.get();
+            Expression right = this.getRightHandOperandChecked(operator, fnOperandParser);
             left = new Expression.Binary(left, operator, right);
         }
         return left;
@@ -127,14 +156,15 @@ public class Parser {
         if (token != null && token.type != EOF) {
             switch (token.type) {
                 case TRUE:
-                    return new Expression.Literal(true);
+                    return new Expression.Literal(true, Expression.Literal.Types.BOOL);
                 case FALSE:
-                    return new Expression.Literal(false);
+                    return new Expression.Literal(false, Expression.Literal.Types.BOOL);
                 case NIL:
-                    return new Expression.Literal(null);
+                    return new Expression.Literal(null, Expression.Literal.Types.NONE);
                 case STRING:
+                    return new Expression.Literal(token.literal, Expression.Literal.Types.STRING);
                 case NUMBER:
-                    return new Expression.Literal(token.literal);
+                    return new Expression.Literal(token.literal, Expression.Literal.Types.NUMERIC);
                 case LEFT_PAREN: {
                     Expression inside = this.expression();
                     this.expect(RIGHT_PAREN, "Unclosed parenthesis detected!");
@@ -143,6 +173,7 @@ public class Parser {
             }
         }
         throw error(token, "What The Actual FUCK?!");
+        // FIXME: Find a way fix for cases printing both errors: (WTF! & Actual Error)
     }
 
     @SuppressWarnings("incomplete-switch")
