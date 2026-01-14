@@ -99,6 +99,9 @@ public class Scanner {
             case '!':
                 this.addToken(this.isNextOne('=') ? BANG_EQUAL : BANG);
                 break;
+            case '~':
+                this.addToken(TILDE);
+                break;
             case '=':
                 this.addToken(this.isNextOne('=') ? EQUAL_EQUAL : EQUAL);
                 break;

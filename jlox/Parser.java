@@ -58,14 +58,15 @@ public class Parser {
         while (this.matches(QUESTION)) {
             Token operator = tokens.get(this.position - 1);
             Expression middle = this.ternary();
-            if (this.matches(BANG)) {
-                Token secondOperator = tokens.get(this.position - 1);
-                Expression right = this.ternary();
-                left = new Expression.Ternary(left, operator, middle, secondOperator, right);
-            } else {
+            if (!this.matches(BANG)) {
+                // TODO: In future, checkout this path can not lead to anything else
+                // (re-assurance)
                 throw error(operator, "Ternary operator: `" + operator.lexeme
                         + "!` requires 3 operands, Which here the third one seems missing!");
             }
+            Token secondOperator = tokens.get(this.position - 1);
+            Expression right = this.ternary();
+            left = new Expression.Ternary(left, operator, middle, secondOperator, right);
         }
         return left;
     }
@@ -77,11 +78,11 @@ public class Parser {
         } catch (Exception ex) {
             throw this.error(operator, "Missing right hand operand!");
         }
-        // TODO: Improve error hamdling here...
+
         if (right instanceof Expression.Literal) {
             Expression.Literal literal = (Expression.Literal) right;
             switch (literal.type) {
-                case Expression.Literal.Types.BOOL:
+                case Expression.Literal.Types.BOOL: // TODO: Decide on mathematics on Bools
                 case Expression.Literal.Types.NONE:
                     throw this.error(operator, "Invalid operand for `" + operator.lexeme + "`!");
                 case Expression.Literal.Types.STRING:
@@ -134,7 +135,7 @@ public class Parser {
     }
 
     private Expression unary() {
-        if (this.matches(BANG, MINUS)) {
+        if (this.matches(BANG, MINUS, PLUS, TILDE)) {
             Token operator = tokens.get(this.position - 1);
             return new Expression.Unary(operator, this.unary());
         }
