@@ -36,10 +36,10 @@ public abstract class Expression {
 	}
 
 	public static class Grouping extends Expression {
-		final Expression expression;
+		final Expression inside;
 
-		public Grouping(Expression expression) {
-			this.expression = expression;
+		public Grouping(Expression insideExpression) {
+			this.inside = insideExpression;
 		}
 
 		@Override

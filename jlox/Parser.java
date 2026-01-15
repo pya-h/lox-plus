@@ -88,7 +88,7 @@ public class Parser {
                 case Expression.Literal.Types.STRING:
                     if (operator.type != PLUS && operator.type != MINUS) {
                         throw this.error(operator,
-                                "Invalid operator `" + operator.lexeme + "` used on string: '" + literal.value + "'!");
+                                "Invalid operator `" + operator.lexeme + "` used on string(s): '" + literal.value + "'!");
                     }
                 default:
                     break;

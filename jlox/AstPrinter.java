@@ -26,7 +26,7 @@ public class AstPrinter implements Expression.Visitor<String> {
 
     @Override
     public String visitGroupingExpression(Expression.Grouping expr) {
-        return wrapExpression("Group", expr.expression);
+        return wrapExpression("Group", expr.inside);
     }
 
     public String wrapExpression(String operatorName, Expression... exprs) {
