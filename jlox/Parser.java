@@ -26,9 +26,10 @@ public class Parser {
         return token;
     }
 
-    private ParseError error(Token token, String mssage) {
-        Lox.error(token, mssage);
-        return new ParseError();
+    private ParseError error(Token token, String message) {
+        ParseError err = new ParseError(message);
+        Lox.error(token, err);
+        return err;
     }
 
     private boolean matches(TokenType... types) {

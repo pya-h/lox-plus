@@ -10,7 +10,13 @@ import java.util.List;
 
 public class Lox {
 
-    private static boolean hadError;
+    private static Exception recentError = null;
+
+    public static void panicAtRuntime(RuntimeError err) {
+        System.err.printf("Program panicked!\n\t%s\n Operation: '%s' @ LINE#%d\n", err.getMessage(),
+                err.operation.lexeme, err.operation.line);
+        recentError = err;
+    }
 
     public static void main(String[] args) throws IOException {
         if (args.length > 1) {
@@ -40,7 +46,7 @@ public class Lox {
             if (line == null)
                 break;
             run(line);
-            hadError = false;
+            recentError = null;
         }
     }
 
@@ -51,14 +57,14 @@ public class Lox {
 
         Parser parser = new Parser(tokens);
         Expression expr = parser.parse();
-        if (hadError || expr == null) {
+        if (recentError != null || expr == null) {
             return;
         }
         System.out.println(new AstPrinter().print(expr));
     }
 
     private static void report(int line, String message, String where) {
-        System.err.println("X [Line# " + line + "]" + where + ": " + message);
+        System.err.printf("X [Line#%d] @ %s: %s\n", line, where, message);
     }
 
     private static void report(int line, String message) {
@@ -69,7 +75,13 @@ public class Lox {
         report(line, message);
     }
 
+    public static void error(Token token, Exception err) {
+        report(token.line, err.getMessage(),
+                token.type != TokenType.EOF ? String.format(" @ '%s'", token.lexeme) : " @ END");
+        recentError = err;
+    }
+
     public static void error(Token token, String message) {
-        report(token.line, message, token.type != TokenType.EOF ? String.format(" @ '%s'", token.lexeme) : " @ END");
+        error(token, new Exception(message));
     }
 }
