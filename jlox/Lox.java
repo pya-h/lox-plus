@@ -82,7 +82,7 @@ public class Lox {
 
     public static void error(Token token, Exception err) {
         report(token.line, err.getMessage(),
-                token.type != TokenType.EOF ? String.format(" @ '%s'", token.lexeme) : " @ END");
+                token.type != TokenType.EOF ? String.format("'%s'", token.lexeme) : " @ END");
         recentError = err;
     }
 

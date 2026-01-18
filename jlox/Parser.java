@@ -80,11 +80,11 @@ public class Parser {
         if (right instanceof Expression.Literal) {
             Expression.Literal literal = (Expression.Literal) right;
             switch (literal.type) {
-                case Expression.Literal.Types.BOOL: // TODO: Decide on mathematics on Bools
+                case Expression.Literal.Types.BOOL:
                 case Expression.Literal.Types.NONE:
                     throw this.error(operator, "Invalid operand for `" + operator.lexeme + "`!");
                 case Expression.Literal.Types.STRING:
-                    if (operator.type != PLUS && operator.type != MINUS) {
+                    if (operator.type != PLUS && operator.type != MINUS && operator.type != STAR) { // NOTICE: This needs revising after string compare
                         throw this.error(operator,
                                 "Invalid operator `" + operator.lexeme + "` used on string(s): '" + literal.value
                                         + "'!");
