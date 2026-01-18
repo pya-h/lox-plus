@@ -44,7 +44,7 @@ public class Interpretter implements Expression.Visitor<Object> {
         }
         if (value instanceof Double) {
             double dblVal = (double) value;
-            int intVal = (int) value;
+            int intVal = (int) dblVal;
             if (dblVal == intVal) {
                 return String.valueOf(intVal);
             }
@@ -88,8 +88,9 @@ public class Interpretter implements Expression.Visitor<Object> {
 
     private String multiplyStringChecked(Token operation, String str, Object otherOperand) {
         if (otherOperand instanceof Double) {
-            int multiplicationCount = (int) otherOperand;
-            if (multiplicationCount >= 0 && multiplicationCount == (double) otherOperand) {
+            double dblOperand = (double) otherOperand;
+            int multiplicationCount = (int) dblOperand;
+            if (multiplicationCount >= 0 && multiplicationCount == dblOperand) {
                 StringBuilder result = new StringBuilder();
                 for (; multiplicationCount > 0; multiplicationCount--, result.append(str))
                     ;
