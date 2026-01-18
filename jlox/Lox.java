@@ -11,6 +11,7 @@ import java.util.List;
 public class Lox {
 
     private static Exception recentError = null;
+    private static final Interpretter interpretter = new Interpretter();
 
     public static void panicAtRuntime(RuntimeError err) {
         System.err.printf("Program panicked!\n\t%s\n Operation: '%s' @ LINE#%d\n", err.getMessage(),
@@ -50,6 +51,10 @@ public class Lox {
         }
     }
 
+    public static void showSyntaxTree(Expression expr) {
+        System.out.println(new AstPrinter().print(expr));
+    }
+
     public static void run(String code) {
         Scanner scanner = new Scanner(code);
 
@@ -60,7 +65,7 @@ public class Lox {
         if (recentError != null || expr == null) {
             return;
         }
-        System.out.println(new AstPrinter().print(expr));
+        interpretter.interpret(expr);
     }
 
     private static void report(int line, String message, String where) {

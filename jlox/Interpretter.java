@@ -7,6 +7,15 @@ public class Interpretter implements Expression.Visitor<Object> {
         return exp.accept(this);
     }
 
+    public void interpret(Expression fullExpression) {
+        try {
+            Object finalVal = this.evaluate(fullExpression);
+            System.out.println(stringify(finalVal));
+        } catch (RuntimeError err) {
+            Lox.panicAtRuntime(err);
+        }
+    }
+
     public boolean toBoolean(Expression exp) {
         final Object value = this.evaluate(exp);
         if (value == null) {
@@ -27,6 +36,24 @@ public class Interpretter implements Expression.Visitor<Object> {
             throw new RuntimeError(parentOperation, "Operation requires numeric operands!");
         }
         return (double) value;
+    }
+
+    public static String stringify(Object value) {
+        if (value == null) {
+            return "nil";
+        }
+        if (value instanceof Double) {
+            double dblVal = (double) value;
+            int intVal = (int) value;
+            if (dblVal == intVal) {
+                return String.valueOf(intVal);
+            }
+            return String.valueOf(dblVal);
+        }
+        if (value instanceof String) {
+            return String.format("'%s'", (String) value);
+        }
+        return value.toString();
     }
 
     public boolean areEqual(Expression first, Expression second) {
