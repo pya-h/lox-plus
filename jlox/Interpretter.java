@@ -3,14 +3,6 @@ package jlox;
 import static jlox.TokenType.*;
 
 public class Interpretter implements Expression.Visitor<Object> {
-    public static class RuntimeError extends RuntimeException {
-    }
-
-    public RuntimeError error(Token operation, String message) {
-        Lox.error(operation, message);
-        throw new RuntimeError();
-    }
-
     public Object evaluate(Expression exp) {
         return exp.accept(this);
     }
@@ -29,8 +21,12 @@ public class Interpretter implements Expression.Visitor<Object> {
         return true;
     }
 
-    public double toNumber(Expression exp) {
-        return (double) this.evaluate(exp);
+    public double toNumberChecked(Token parentOperation, Expression exp) {
+        final Object value = this.evaluate(exp);
+        if (!(value instanceof Double)) {
+            throw new RuntimeError(parentOperation, "Operation requires numeric operands!");
+        }
+        return (double) value;
     }
 
     public boolean areEqual(Expression first, Expression second) {
@@ -51,17 +47,47 @@ public class Interpretter implements Expression.Visitor<Object> {
         return this.evaluate(expression.inside);
     }
 
+    private void checkOperandsAreNumeric(Token operator, Object... operands) {
+        checkOperandsAreNumeric(operator, "Operation requires numeric operand" + (operands.length > 1 ? "s." : "."),
+                operands);
+    }
+
+    private void checkOperandsAreNumeric(Token operator, String message, Object... operands) {
+        for (Object operand : operands) {
+            if (!(operand instanceof Double))
+                throw new RuntimeError(operator, message);
+        }
+    }
+
+    private String multiplyStringChecked(Token operation, String str, Object otherOperand) {
+        if (otherOperand instanceof Double) {
+            int multiplicationCount = (int) otherOperand;
+            if (multiplicationCount >= 0 && multiplicationCount == (double) otherOperand) {
+                StringBuilder result = new StringBuilder();
+                for (; multiplicationCount > 0; multiplicationCount--, result.append(str))
+                    ;
+                return result.toString();
+            }
+        }
+        throw new RuntimeError(operation, "Strings can only be multiplied by positive Integers!");
+    }
+
     @Override
     public Object visitUnaryExpression(Expression.Unary expression) {
+        if (expression.operator.type == BANG) {
+            return !this.toBoolean(expression.right);
+        }
+        final Object right = this.evaluate(expression.right);
         switch (expression.operator.type) {
             case MINUS:
-                return -this.toNumber(expression.right);
+                checkOperandsAreNumeric(expression.operator, right);
+                return -(double) right; // TODO: Maybe add strToNumber for +/-?
             case PLUS:
-                return this.toNumber(expression.right);
-            case BANG:
-                return !this.toBoolean(expression.right);
+                checkOperandsAreNumeric(expression.operator, right);
+                return (double) right;
             case TILDE:
-                return -this.toNumber(expression.right) - 1.0;
+                checkOperandsAreNumeric(expression.operator, right);
+                return -(double) right - 1.0;
             default:
                 break;
         }
@@ -74,12 +100,14 @@ public class Interpretter implements Expression.Visitor<Object> {
             // Numeric (or sometimes String) Operations
             case PLUS: {
                 final Object left = this.evaluate(expression.left), right = this.evaluate(expression.right);
-                if (left instanceof String) {
-                    if (right == null) {
-                        throw this.error(expression.operator, "Invalid addition of a String && Nothingness!");
+                if (left instanceof String || right instanceof String) {
+                    if (right == null || left == null) {
+                        throw new RuntimeError(expression.operator, "Invalid addition of a String && nil!");
                     }
-                    return (String) left + right.toString();
+                    return left.toString() + right.toString();
                 }
+                this.checkOperandsAreNumeric(expression.operator,
+                        "Addition accepts operands of type Number or String only!", left, right);
                 return (double) left + (double) right;
             }
             case MINUS: {
@@ -87,42 +115,44 @@ public class Interpretter implements Expression.Visitor<Object> {
                 if (left instanceof String && right instanceof String) {
                     return ((String) left).replaceAll((String) right, "");
                 }
+                this.checkOperandsAreNumeric(expression.operator,
+                        "Substraction requires that operands be both Numeric or String!", left, right);
                 return (double) left - (double) right;
             }
             case STAR: {
                 final Object left = this.evaluate(expression.left), right = this.evaluate(expression.right);
                 if (left instanceof String) {
-                    if (right instanceof Double) {
-                        int multiplicationCount = (int) right;
-                        if (multiplicationCount >= 0 && multiplicationCount == (double) right) {
-                            StringBuilder result = new StringBuilder();
-                            final String strLeft = (String) left;
-                            for (; multiplicationCount > 0; multiplicationCount--, result.append(strLeft))
-                                ;
-                            return result.toString();
-                        }
-                    }
-                    throw this.error(expression.operator, "Strings can only be multiplied by positive Integers!");
+                    return this.multiplyStringChecked(expression.operator, (String) left, right);
                 }
+                if (right instanceof String) {
+                    return this.multiplyStringChecked(expression.operator, (String) right, left);
+                }
+                this.checkOperandsAreNumeric(expression.operator,
+                        "Multiplication is only allowed on a Number by another Number or String,", left, right);
+
                 return (double) left * (double) right;
             }
             case FORTH_SLASH: {
-                final double right = this.toNumber(expression.right);
+                final double right = this.toNumberChecked(expression.operator, expression.right);
                 if (right == 0) {
-                    throw this.error(expression.operator, "Division By Zero happenned!");
+                    throw new RuntimeError(expression.operator, "Division By Zero happenned!");
                 }
-                return this.toNumber(expression.left) / right;
+                return this.toNumberChecked(expression.operator, expression.left) / right;
             }
 
             // Logical
             case GREATER:
-                return this.toNumber(expression.left) > this.toNumber(expression.right);
+                return this.toNumberChecked(expression.operator, expression.left) > this
+                        .toNumberChecked(expression.operator, expression.right);
             case GREATER_EQUAL:
-                return this.toNumber(expression.left) >= this.toNumber(expression.right);
+                return this.toNumberChecked(expression.operator, expression.left) >= this
+                        .toNumberChecked(expression.operator, expression.right);
             case LESS:
-                return this.toNumber(expression.left) < this.toNumber(expression.right);
+                return this.toNumberChecked(expression.operator, expression.left) < this
+                        .toNumberChecked(expression.operator, expression.right);
             case LESS_EQUAL:
-                return this.toNumber(expression.left) <= this.toNumber(expression.right);
+                return this.toNumberChecked(expression.operator, expression.left) <= this
+                        .toNumberChecked(expression.operator, expression.right);
             case EQUAL_EQUAL:
                 return this.areEqual(expression.left, expression.right);
             case BANG_EQUAL:
@@ -138,7 +168,7 @@ public class Interpretter implements Expression.Visitor<Object> {
         if (expression.firstOperator.type == QUESTION) {
             // NOTE: This may change in future ...
             if (expression.secondOperator == null || expression.secondOperator.type != BANG) {
-                throw error(expression.firstOperator, "Invalid ternary expression!");
+                throw new RuntimeError(expression.firstOperator, "Invalid ternary expression!");
             }
             return this.toBoolean(expression.left) ? this.evaluate(expression.middle) : this.evaluate(expression.right);
         }
