@@ -53,6 +53,9 @@ public class Interpretter implements Expression.Visitor<Object> {
         if (value instanceof String) {
             return String.format("'%s'", (String) value);
         }
+        if(value instanceof Boolean) {
+            return (boolean) value ? "T" : "F";
+        }
         return value.toString();
     }
 
@@ -63,17 +66,7 @@ public class Interpretter implements Expression.Visitor<Object> {
         }
         return obj1st.equals(obj2nd); // TODO: Checkout what this do on Strings.
     }
-
-    @Override
-    public Object visitLiteralExpression(Expression.Literal expression) {
-        return expression.value;
-    }
-
-    @Override
-    public Object visitGroupingExpression(Expression.Grouping expression) {
-        return this.evaluate(expression.inside);
-    }
-
+    
     private void checkOperandsAreNumeric(Token operator, Object... operands) {
         checkOperandsAreNumeric(operator, "Operation requires numeric operand" + (operands.length > 1 ? "s." : "."),
                 operands);
@@ -86,7 +79,7 @@ public class Interpretter implements Expression.Visitor<Object> {
         }
     }
 
-    private String multiplyStringChecked(Token operation, String str, Object otherOperand) {
+    private static String multiplyStringChecked(Token operation, String str, Object otherOperand) {
         if (otherOperand instanceof Double) {
             double dblOperand = (double) otherOperand;
             int multiplicationCount = (int) dblOperand;
@@ -98,6 +91,21 @@ public class Interpretter implements Expression.Visitor<Object> {
             }
         }
         throw new RuntimeError(operation, "Strings can only be multiplied by positive Integers!");
+    }
+
+    public static ComparisonResult compareStrings() {
+        // TODO:
+        return ComparisonResult.EQUAL;
+    }
+
+    @Override
+    public Object visitLiteralExpression(Expression.Literal expression) {
+        return expression.value;
+    }
+
+    @Override
+    public Object visitGroupingExpression(Expression.Grouping expression) {
+        return this.evaluate(expression.inside);
     }
 
     @Override
@@ -150,10 +158,10 @@ public class Interpretter implements Expression.Visitor<Object> {
             case STAR: {
                 final Object left = this.evaluate(expression.left), right = this.evaluate(expression.right);
                 if (left instanceof String) {
-                    return this.multiplyStringChecked(expression.operator, (String) left, right);
+                    return multiplyStringChecked(expression.operator, (String) left, right);
                 }
                 if (right instanceof String) {
-                    return this.multiplyStringChecked(expression.operator, (String) right, left);
+                    return multiplyStringChecked(expression.operator, (String) right, left);
                 }
                 this.checkOperandsAreNumeric(expression.operator,
                         "Multiplication is only allowed on a Number by another Number or String,", left, right);

@@ -52,7 +52,7 @@ public class Lox {
     }
 
     public static void showSyntaxTree(Expression expr) {
-        System.out.println(new AstPrinter().print(expr));
+        System.out.println(new tools.AstPrinter().print(expr));
     }
 
     public static void run(String code) {

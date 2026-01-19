@@ -1,6 +1,6 @@
-package jlox;
+package jlox.extra;
 
-public class Examples {
+public class AstExample {
     public static void main(String[] args) {
         AstPrinter printer = new AstPrinter();
         // Example usage

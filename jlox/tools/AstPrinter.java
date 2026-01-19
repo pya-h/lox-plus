@@ -1,4 +1,4 @@
-package jlox;
+package jlox.tools;
 
 public class AstPrinter implements Expression.Visitor<String> {
 
