@@ -88,6 +88,9 @@ public class Scanner {
             case '*':
                 this.addToken(STAR);
                 break;
+            case '%':
+                this.addToken(PERCENTAGE);
+                break;
             case '?':
                 this.addToken(QUESTION);
                 break;

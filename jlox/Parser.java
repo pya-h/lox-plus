@@ -87,7 +87,7 @@ public class Parser {
                     }
                     break;
                 case Expression.Literal.Types.STRING:
-                    if (operator.type == FORTH_SLASH) { // NOTICE: This needs revising after string compare
+                    if (operator.type == FORTH_SLASH || operator.type == PERCENTAGE) { // NOTICE: This needs revising after string compare
                         throw this.error(operator,
                                 "Invalid operator `" + operator.lexeme + "` used on string(s): '" + literal.value
                                         + "'!");
@@ -134,7 +134,7 @@ public class Parser {
     }
 
     private Expression factor() {
-        return this.parseBinaryExpression(this::unary, STAR, FORTH_SLASH);
+        return this.parseBinaryExpression(this::unary, STAR, FORTH_SLASH, PERCENTAGE);
     }
 
     private Expression unary() {

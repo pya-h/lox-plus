@@ -41,7 +41,7 @@ public class Interpretter implements Expression.Visitor<Object> {
     public static String numericObjectToString(Object num) {
         double dblVal = (double) num;
         int intVal = (int) dblVal;
-        if(dblVal != intVal) {
+        if (dblVal != intVal) {
             return String.valueOf(dblVal);
         }
         return String.valueOf(intVal);
@@ -68,7 +68,7 @@ public class Interpretter implements Expression.Visitor<Object> {
         if (obj1st == null) {
             return obj2nd == null;
         }
-        return obj1st.equals(obj2nd); // TODO: Checkout what this do on Strings.
+        return obj1st.equals(obj2nd);
     }
 
     private void checkOperandsAreNumeric(final Token operator, Object... operands) {
@@ -210,12 +210,15 @@ public class Interpretter implements Expression.Visitor<Object> {
 
                 return (double) left * (double) right;
             }
+            case PERCENTAGE:
             case FORTH_SLASH: {
                 final double right = this.toNumberChecked(expression.operator, expression.right);
                 if (right == 0) {
                     throw new RuntimeError(expression.operator, "Division By Zero happenned!");
                 }
-                return this.toNumberChecked(expression.operator, expression.left) / right;
+                return expression.operator.type == FORTH_SLASH
+                        ? this.toNumberChecked(expression.operator, expression.left) / right
+                        : this.toNumberChecked(expression.operator, expression.left) % right;
             }
 
             // Logical
