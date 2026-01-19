@@ -38,17 +38,21 @@ public class Interpretter implements Expression.Visitor<Object> {
         return (double) value;
     }
 
+    public static String numericObjectToString(Object num) {
+        double dblVal = (double) num;
+        int intVal = (int) dblVal;
+        if(dblVal != intVal) {
+            return String.valueOf(dblVal);
+        }
+        return String.valueOf(intVal);
+    }
+
     public static String stringify(Object value) {
         if (value == null) {
             return "nil";
         }
         if (value instanceof Double) {
-            double dblVal = (double) value;
-            int intVal = (int) dblVal;
-            if (dblVal == intVal) {
-                return String.valueOf(intVal);
-            }
-            return String.valueOf(dblVal);
+            return numericObjectToString(value);
         }
         if (value instanceof String) {
             return String.format("'%s'", (String) value);
@@ -67,19 +71,19 @@ public class Interpretter implements Expression.Visitor<Object> {
         return obj1st.equals(obj2nd); // TODO: Checkout what this do on Strings.
     }
 
-    private void checkOperandsAreNumeric(Token operator, Object... operands) {
+    private void checkOperandsAreNumeric(final Token operator, Object... operands) {
         checkOperandsAreNumeric(operator, "Operation requires numeric operand" + (operands.length > 1 ? "s." : "."),
                 operands);
     }
 
-    private void checkOperandsAreNumeric(Token operator, String message, Object... operands) {
+    private void checkOperandsAreNumeric(final Token operator, String message, Object... operands) {
         for (Object operand : operands) {
             if (!(operand instanceof Double))
                 throw new RuntimeError(operator, message);
         }
     }
 
-    private static String multiplyStringChecked(Token operation, String str, Object otherOperand) {
+    private static String multiplyStringChecked(final Token operation, String str, Object otherOperand) {
         if (otherOperand instanceof Double) {
             double dblOperand = (double) otherOperand;
             int multiplicationCount = (int) dblOperand;
@@ -107,7 +111,7 @@ public class Interpretter implements Expression.Visitor<Object> {
                 : (left.length() > right.length() ? ComparisonResult.LARGER : ComparisonResult.EQUAL);
     }
 
-    private static boolean handleLogicalOperatorOnString(Token operation, final String str, Object other,
+    private static boolean handleLogicalOperatorOnString(final Token operation, final String str, Object other,
             ComparisonResult desiredResult) {
         final boolean orEqual = desiredResult != ComparisonResult.EQUAL && operation.lexeme.indexOf('=') > 0;
         if (other instanceof String) {
@@ -157,17 +161,28 @@ public class Interpretter implements Expression.Visitor<Object> {
         return null;
     }
 
+    private static String concaterateToStringOrNumber(final Token operation, final String str, Object other,
+            boolean reversed) {
+        if (other == null) {
+            throw new RuntimeError(operation, "Invalid concaterating of a String && Nothing!");
+        }
+        if (reversed) {
+            return (other instanceof Double ? numericObjectToString(other) : other.toString()) + str;
+        }
+        return str + (other instanceof Double ? numericObjectToString(other) : other.toString());
+    }
+
     @Override
     public Object visitBinaryExpression(Expression.Binary expression) {
         switch (expression.operator.type) {
             // Numeric (or sometimes String) Operations
             case PLUS: {
                 final Object left = this.evaluate(expression.left), right = this.evaluate(expression.right);
-                if (left instanceof String || right instanceof String) {
-                    if (right == null || left == null) {
-                        throw new RuntimeError(expression.operator, "Invalid addition of a String && nil!");
-                    }
-                    return left.toString() + right.toString();
+                if (left instanceof String) {
+                    return concaterateToStringOrNumber(expression.operator, (String) left, right, false);
+                }
+                if (right instanceof String) {
+                    return concaterateToStringOrNumber(expression.operator, (String) right, left, true);
                 }
                 this.checkOperandsAreNumeric(expression.operator,
                         "Addition accepts operands of type Number or String only!", left, right);
