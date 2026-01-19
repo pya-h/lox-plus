@@ -14,7 +14,7 @@ public class Lox {
     private static final Interpretter interpretter = new Interpretter();
 
     public static void panicAtRuntime(RuntimeError err) {
-        System.err.printf("Program panicked!\n\t%s\n Operation: '%s' @ LINE#%d\n", err.getMessage(),
+        System.err.printf("X Program panicked!\n\t%s\n Operation: '%s' @ LINE#%d\n", err.getMessage(),
                 err.operation.lexeme, err.operation.line);
         recentError = err;
     }

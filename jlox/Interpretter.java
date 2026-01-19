@@ -53,7 +53,7 @@ public class Interpretter implements Expression.Visitor<Object> {
         if (value instanceof String) {
             return String.format("'%s'", (String) value);
         }
-        if(value instanceof Boolean) {
+        if (value instanceof Boolean) {
             return (boolean) value ? "T" : "F";
         }
         return value.toString();
@@ -66,7 +66,7 @@ public class Interpretter implements Expression.Visitor<Object> {
         }
         return obj1st.equals(obj2nd); // TODO: Checkout what this do on Strings.
     }
-    
+
     private void checkOperandsAreNumeric(Token operator, Object... operands) {
         checkOperandsAreNumeric(operator, "Operation requires numeric operand" + (operands.length > 1 ? "s." : "."),
                 operands);
@@ -93,9 +93,36 @@ public class Interpretter implements Expression.Visitor<Object> {
         throw new RuntimeError(operation, "Strings can only be multiplied by positive Integers!");
     }
 
-    public static ComparisonResult compareStrings() {
-        // TODO:
-        return ComparisonResult.EQUAL;
+    public static ComparisonResult compareStrings(final String left, final String right) {
+        int iDiff = 0;
+        final int minLength = Math.min(left.length(), right.length());
+        for (; iDiff < minLength
+                && left.charAt(iDiff) == right.charAt(iDiff); iDiff++)
+            ;
+        if (iDiff < minLength) { // difference character found
+            return left.charAt(iDiff) < right.charAt(iDiff) ? ComparisonResult.SMALLER : ComparisonResult.LARGER;
+        }
+
+        return left.length() < right.length() ? ComparisonResult.SMALLER
+                : (left.length() > right.length() ? ComparisonResult.LARGER : ComparisonResult.EQUAL);
+    }
+
+    private static boolean handleLogicalOperatorOnString(Token operation, final String str, Object other,
+            ComparisonResult desiredResult) {
+        final boolean orEqual = desiredResult != ComparisonResult.EQUAL && operation.lexeme.indexOf('=') > 0;
+        if (other instanceof String) {
+            final ComparisonResult compareResult = compareStrings(str, (String) other);
+            return compareResult == desiredResult || (orEqual && compareResult == ComparisonResult.EQUAL);
+        }
+        if (other instanceof Double) {
+            double dblOther = (double) other;
+            if ((orEqual || desiredResult == ComparisonResult.EQUAL) && dblOther == str.length()) {
+                return true;
+            }
+            return desiredResult == ComparisonResult.SMALLER ? str.length() < dblOther : str.length() > dblOther;
+        }
+        throw new RuntimeError(operation,
+                "Strings can only be compared with another String or length-compared with a number.");
     }
 
     @Override
@@ -164,7 +191,7 @@ public class Interpretter implements Expression.Visitor<Object> {
                     return multiplyStringChecked(expression.operator, (String) right, left);
                 }
                 this.checkOperandsAreNumeric(expression.operator,
-                        "Multiplication is only allowed on a Number by another Number or String,", left, right);
+                        "Multiplication is only allowed on a Number by another Number or String!", left, right);
 
                 return (double) left * (double) right;
             }
@@ -177,18 +204,38 @@ public class Interpretter implements Expression.Visitor<Object> {
             }
 
             // Logical
-            case GREATER:
-                return this.toNumberChecked(expression.operator, expression.left) > this
-                        .toNumberChecked(expression.operator, expression.right);
             case GREATER_EQUAL:
-                return this.toNumberChecked(expression.operator, expression.left) >= this
-                        .toNumberChecked(expression.operator, expression.right);
-            case LESS:
-                return this.toNumberChecked(expression.operator, expression.left) < this
-                        .toNumberChecked(expression.operator, expression.right);
+            case GREATER: {
+                final Object left = this.evaluate(expression.left), right = this.evaluate(expression.right);
+                if (left instanceof String) {
+                    return this.handleLogicalOperatorOnString(expression.operator, (String) left, right,
+                            ComparisonResult.LARGER);
+                }
+                if (right instanceof String) {
+                    return this.handleLogicalOperatorOnString(expression.operator, (String) right, left,
+                            ComparisonResult.SMALLER);
+                }
+                this.checkOperandsAreNumeric(expression.operator,
+                        "Operation only accepts operands of type Number or String only!", left, right);
+                return expression.operator.type == GREATER_EQUAL ? (double) left >= (double) right
+                        : (double) left > (double) right;
+            }
             case LESS_EQUAL:
-                return this.toNumberChecked(expression.operator, expression.left) <= this
-                        .toNumberChecked(expression.operator, expression.right);
+            case LESS: {
+                final Object left = this.evaluate(expression.left), right = this.evaluate(expression.right);
+                if (left instanceof String) {
+                    return this.handleLogicalOperatorOnString(expression.operator, (String) left, right,
+                            ComparisonResult.SMALLER);
+                }
+                if (right instanceof String) {
+                    return this.handleLogicalOperatorOnString(expression.operator, (String) right, left,
+                            ComparisonResult.LARGER);
+                }
+                this.checkOperandsAreNumeric(expression.operator,
+                        "Operation only accepts operands of type Number or String only!", left, right);
+                return expression.operator.type == LESS_EQUAL ? (double) left <= (double) right
+                        : (double) left < (double) right;
+            }
             case EQUAL_EQUAL:
                 return this.areEqual(expression.left, expression.right);
             case BANG_EQUAL:
