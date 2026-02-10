@@ -87,7 +87,7 @@ public class Parser {
                     }
                     break;
                 case Expression.Literal.Types.STRING:
-                    if (operator.type == FORTH_SLASH || operator.type == PERCENTAGE) { // NOTICE: This needs revising after string compare
+                    if (operator.type == FORTH_SLASH || operator.type == PERCENTAGE) {
                         throw this.error(operator,
                                 "Invalid operator `" + operator.lexeme + "` used on string(s): '" + literal.value
                                         + "'!");

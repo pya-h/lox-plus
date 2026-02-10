@@ -226,11 +226,11 @@ public class Interpretter implements Expression.Visitor<Object> {
             case GREATER: {
                 final Object left = this.evaluate(expression.left), right = this.evaluate(expression.right);
                 if (left instanceof String) {
-                    return this.handleLogicalOperatorOnString(expression.operator, (String) left, right,
+                    return handleLogicalOperatorOnString(expression.operator, (String) left, right,
                             ComparisonResult.LARGER);
                 }
                 if (right instanceof String) {
-                    return this.handleLogicalOperatorOnString(expression.operator, (String) right, left,
+                    return handleLogicalOperatorOnString(expression.operator, (String) right, left,
                             ComparisonResult.SMALLER);
                 }
                 this.checkOperandsAreNumeric(expression.operator,
@@ -242,11 +242,11 @@ public class Interpretter implements Expression.Visitor<Object> {
             case LESS: {
                 final Object left = this.evaluate(expression.left), right = this.evaluate(expression.right);
                 if (left instanceof String) {
-                    return this.handleLogicalOperatorOnString(expression.operator, (String) left, right,
+                    return handleLogicalOperatorOnString(expression.operator, (String) left, right,
                             ComparisonResult.SMALLER);
                 }
                 if (right instanceof String) {
-                    return this.handleLogicalOperatorOnString(expression.operator, (String) right, left,
+                    return handleLogicalOperatorOnString(expression.operator, (String) right, left,
                             ComparisonResult.LARGER);
                 }
                 this.checkOperandsAreNumeric(expression.operator,
