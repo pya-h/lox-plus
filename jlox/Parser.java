@@ -2,6 +2,7 @@ package jlox;
 
 import static jlox.TokenType.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -46,6 +47,28 @@ public class Parser {
         return false;
     }
 
+    private Expression extractSingleStatementExpression() {
+        Expression value = expression();
+        expect(SEMICOLON, "Missing semicolon!");
+        return value;
+    }
+
+    private Statement printStatement() {
+        return new Statement.PrintStatement(this.extractSingleStatementExpression());
+    }
+
+
+    private Statement expressionStatement() {
+        return new Statement.ExpressionStatement(this.extractSingleStatementExpression());
+    }
+
+    private Statement statement() {
+        if(this.matches(PRINT)) {
+            return printStatement();
+        }
+        return expressionStatement();
+    }
+
     private Expression expression() {
         return this.ternary();
     }
@@ -80,9 +103,10 @@ public class Parser {
         if (right instanceof Expression.Literal) {
             Expression.Literal literal = (Expression.Literal) right;
             switch (literal.type) {
-                case Expression.Literal.Types.BOOL: // DECIDE: Allow mathematical operators on BOOLs? [e.g. * for AND, + for OR, etc..]
+                case Expression.Literal.Types.BOOL: // DECIDE: Allow mathematical operators on BOOLs? [e.g. * for AND, +
+                                                    // for OR, etc..]
                 case Expression.Literal.Types.NONE:
-                    if(operator.type != EQUAL_EQUAL && operator.type != BANG_EQUAL) {
+                    if (operator.type != EQUAL_EQUAL && operator.type != BANG_EQUAL) {
                         throw this.error(operator, "Invalid operand for `" + operator.lexeme + "`!");
                     }
                     break;
@@ -205,11 +229,13 @@ public class Parser {
         }
     }
 
-    public Expression parse() {
+    public List<Statement> parse() {
+        List<Statement> statements = new ArrayList<>();
         try {
-            return expression();
-        } catch (ParseError err) {
-            return null;
-        }
+            while (this.position < this.tokens.size()) {
+                statements.add(this.statement());
+            }
+        } catch (ParseError err) { }
+        return statements;
     }
 }
