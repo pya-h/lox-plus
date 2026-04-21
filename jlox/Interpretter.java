@@ -1,6 +1,8 @@
 package jlox;
 
 import static jlox.TokenType.*;
+import jlox.common.Token;
+import jlox.exceptions.*;
 
 public class Interpretter implements Expression.Visitor<Object> {
 

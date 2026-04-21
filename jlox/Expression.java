@@ -1,4 +1,5 @@
 package jlox;
+import jlox.common.Token;
 
 public abstract class Expression {
 

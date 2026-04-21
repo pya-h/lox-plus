@@ -1,4 +1,4 @@
-package jlox;
+package jlox.common;
 
 public class Token {
 

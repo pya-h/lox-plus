@@ -1,4 +1,4 @@
-package jlox;
+package jlox.common;
 
 enum TokenType {
     // Single-character tokens.
