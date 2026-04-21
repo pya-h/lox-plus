@@ -9,7 +9,9 @@ import java.util.Map;
 import java.util.Objects;
 
 public class Scanner {
+
     private static final Map<String, TokenType> keywords = new HashMap<>();
+
     static {
         keywords.put("and", AND);
         keywords.put("or", OR);
@@ -31,7 +33,10 @@ public class Scanner {
     }
 
     private final String source;
-    private int start = 0, current = 0, line = 1, end;
+    private int start = 0,
+        current = 0,
+        line = 1,
+        end;
     private final List<Token> tokens = new ArrayList<>();
 
     public Scanner(String source) {
@@ -116,8 +121,7 @@ public class Scanner {
                 break;
             case '/':
                 if (this.isNextOne('/')) {
-                    while (this.current < this.end && this.source.charAt(this.current++) != '\n')
-                        line++;
+                    while (this.current < this.end && this.source.charAt(this.current++) != '\n') line++;
                 } else if (this.isNextOne('*')) {
                     int comments = 1;
                     this.current++;
@@ -226,9 +230,12 @@ public class Scanner {
             }
             this.current++;
         }
-        this.addToken(NUMBER, dotAppeared ? Double.parseDouble(this.source.substring(this.start, this.current))
-                : Integer.parseInt(this.source.substring(this.start, this.current)));
-
+        this.addToken(
+            NUMBER,
+            dotAppeared
+                ? Double.parseDouble(this.source.substring(this.start, this.current))
+                : Integer.parseInt(this.source.substring(this.start, this.current))
+        );
     }
 
     private void extractNextIdentifier() {
@@ -237,15 +244,14 @@ public class Scanner {
             return;
         }
 
-        for (; this.current < this.end && this.isAlphanumeric(this.source.charAt(this.current)); this.current++)
-            ;
+        for (; this.current < this.end && this.isAlphanumeric(this.source.charAt(this.current)); this.current++);
         final String word = this.source.substring(this.start, this.current);
         final TokenType keyword = Scanner.keywords.get(word);
         this.addToken(Objects.requireNonNullElse(keyword, IDENTIFIER));
     }
 
     private boolean isAlphabetic(char ch) {
-        return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || ch == '_';
+        return ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || ch == '_');
     }
 
     private boolean isAlphanumeric(char ch) {

@@ -1,103 +1,114 @@
 package jlox;
 
 public abstract class Expression {
-	public interface Visitor<T> {
-		T visitLiteralExpression(Literal expression);
 
-		T visitGroupingExpression(Grouping expression);
+    public interface Visitor<T> {
+        T visitLiteralExpression(Literal expression);
 
-		T visitBinaryExpression(Binary expression);
+        T visitGroupingExpression(Grouping expression);
 
-		T visitUnaryExpression(Unary expression);
+        T visitBinaryExpression(Binary expression);
 
-		T visitTernaryExpression(Ternary expTernary);
-	}
+        T visitUnaryExpression(Unary expression);
 
-	public static class Literal extends Expression {
-		final Object value;
-		final Literal.Types type;
+        T visitTernaryExpression(Ternary expTernary);
+    }
 
-		public static enum Types {
-			BOOL,
-			NUMERIC,
-			STRING,
-			NONE,
-		}
+    public static class Literal extends Expression {
 
-		public Literal(Object value, Literal.Types type) {
-			this.value = value;
-			this.type = type;
-		}
+        final Object value;
+        final Literal.Types type;
 
-		@Override
-		<T> T accept(Visitor<T> visitor) {
-			return visitor.visitLiteralExpression(this);
-		}
-	}
+        public static enum Types {
+            BOOL,
+            NUMERIC,
+            STRING,
+            NONE,
+        }
 
-	public static class Grouping extends Expression {
-		final Expression inside;
+        public Literal(Object value, Literal.Types type) {
+            this.value = value;
+            this.type = type;
+        }
 
-		public Grouping(Expression insideExpression) {
-			this.inside = insideExpression;
-		}
+        @Override
+        <T> T accept(Visitor<T> visitor) {
+            return visitor.visitLiteralExpression(this);
+        }
+    }
 
-		@Override
-		<T> T accept(Visitor<T> visitor) {
-			return visitor.visitGroupingExpression(this);
-		}
-	}
+    public static class Grouping extends Expression {
 
-	public static class Ternary extends Expression {
-		final Expression left, middle, right;
-		final Token firstOperator, secondOperator;
+        final Expression inside;
 
-		public Ternary(Expression left, Token firstOperator, Expression middle, Token secondOperator,
-				Expression right) {
-			this.left = left;
-			this.firstOperator = firstOperator;
-			this.middle = middle;
-			this.secondOperator = secondOperator;
-			this.right = right;
-		}
+        public Grouping(Expression insideExpression) {
+            this.inside = insideExpression;
+        }
 
-		@Override
-		<T> T accept(Visitor<T> visitor) {
-			return visitor.visitTernaryExpression(this);
-		}
-	}
+        @Override
+        <T> T accept(Visitor<T> visitor) {
+            return visitor.visitGroupingExpression(this);
+        }
+    }
 
-	public static class Binary extends Expression {
-		final Expression left;
-		final Token operator;
-		final Expression right;
+    public static class Ternary extends Expression {
 
-		public Binary(Expression left, Token operator, Expression right) {
-			this.left = left;
-			this.operator = operator;
-			this.right = right;
-		}
+        final Expression left, middle, right;
+        final Token firstOperator, secondOperator;
 
-		@Override
-		<T> T accept(Visitor<T> visitor) {
-			return visitor.visitBinaryExpression(this);
-		}
-	}
+        public Ternary(
+            Expression left,
+            Token firstOperator,
+            Expression middle,
+            Token secondOperator,
+            Expression right
+        ) {
+            this.left = left;
+            this.firstOperator = firstOperator;
+            this.middle = middle;
+            this.secondOperator = secondOperator;
+            this.right = right;
+        }
 
-	public static class Unary extends Expression {
-		final Token operator;
-		final Expression right;
+        @Override
+        <T> T accept(Visitor<T> visitor) {
+            return visitor.visitTernaryExpression(this);
+        }
+    }
 
-		public Unary(Token operator, Expression right) {
-			this.operator = operator;
-			this.right = right;
-		}
+    public static class Binary extends Expression {
 
-		@Override
-		<T> T accept(Visitor<T> visitor) {
-			return visitor.visitUnaryExpression(this);
-		}
-	}
+        final Expression left;
+        final Token operator;
+        final Expression right;
 
-	abstract <T> T accept(Visitor<T> visitor);
+        public Binary(Expression left, Token operator, Expression right) {
+            this.left = left;
+            this.operator = operator;
+            this.right = right;
+        }
+
+        @Override
+        <T> T accept(Visitor<T> visitor) {
+            return visitor.visitBinaryExpression(this);
+        }
+    }
+
+    public static class Unary extends Expression {
+
+        final Token operator;
+        final Expression right;
+
+        public Unary(Token operator, Expression right) {
+            this.operator = operator;
+            this.right = right;
+        }
+
+        @Override
+        <T> T accept(Visitor<T> visitor) {
+            return visitor.visitUnaryExpression(this);
+        }
+    }
+
+    abstract <T> T accept(Visitor<T> visitor);
 }

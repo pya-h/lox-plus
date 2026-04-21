@@ -1,6 +1,7 @@
 package jlox;
 
 public class ParseError extends RuntimeException {
+
     public ParseError() {
         super("Unexpected Error!");
     }

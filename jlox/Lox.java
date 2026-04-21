@@ -14,8 +14,12 @@ public class Lox {
     private static final Interpretter interpretter = new Interpretter();
 
     public static void panicAtRuntime(RuntimeError err) {
-        System.err.printf("X Program panicked!\n\t%s\n Operation: '%s' @ LINE#%d\n", err.getMessage(),
-                err.operation.lexeme, err.operation.line);
+        System.err.printf(
+            "X Program panicked!\n\t%s\n Operation: '%s' @ LINE#%d\n",
+            err.getMessage(),
+            err.operation.lexeme,
+            err.operation.line
+        );
         recentError = err;
     }
 
@@ -38,14 +42,12 @@ public class Lox {
     }
 
     public static void runPrompt() throws IOException {
-        final BufferedReader reader = new BufferedReader(
-                new InputStreamReader(System.in));
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
         while (true) {
             System.out.print("> ");
             final String line = reader.readLine();
-            if (line == null)
-                break;
+            if (line == null) break;
             run(line);
             recentError = null;
         }
@@ -81,8 +83,11 @@ public class Lox {
     }
 
     public static void error(Token token, Exception err) {
-        report(token.line, err.getMessage(),
-                token.type != TokenType.EOF ? String.format("'%s'", token.lexeme) : " @ END");
+        report(
+            token.line,
+            err.getMessage(),
+            token.type != TokenType.EOF ? String.format("'%s'", token.lexeme) : " @ END"
+        );
         recentError = err;
     }
 
