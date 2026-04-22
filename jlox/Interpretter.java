@@ -4,7 +4,7 @@ import static jlox.TokenType.*;
 import jlox.common.Token;
 import jlox.exceptions.*;
 
-public class Interpretter implements Expression.Visitor<Object> {
+public class Interpretter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
 
     public Object evaluate(Expression exp) {
         return exp.accept(this);
@@ -330,6 +330,12 @@ public class Interpretter implements Expression.Visitor<Object> {
             }
             return this.toBoolean(expression.left) ? this.evaluate(expression.middle) : this.evaluate(expression.right);
         }
+        return null;
+    }
+
+    @Override
+    public Void visitExpressionStatement(Statement.ExpressionStatement statement) {
+        this.evaluate(statement.expression);
         return null;
     }
 }
