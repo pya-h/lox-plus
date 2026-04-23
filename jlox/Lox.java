@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import jlox.common.Token;
 import jlox.exceptions.*;
+import jlox.common.TokenType;
 
 public class Lox {
 
@@ -65,11 +66,11 @@ public class Lox {
         List<Token> tokens = scanner.scanTokens();
 
         Parser parser = new Parser(tokens);
-        Expression expr = parser.parse();
-        if (recentError != null || expr == null) {
+        List<Statement> statements = parser.parse();
+        if (recentError != null || statements.size() == 0) {
             return;
         }
-        interpretter.interpret(expr);
+        interpretter.interpret(statements);
     }
 
     private static void report(int line, String message, String where) {

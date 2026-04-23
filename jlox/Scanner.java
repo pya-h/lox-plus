@@ -1,5 +1,6 @@
 package jlox;
 
+import jlox.common.TokenType;
 import static jlox.common.TokenType.*;
 import jlox.common.Token;
 

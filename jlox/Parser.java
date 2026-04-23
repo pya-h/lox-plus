@@ -1,7 +1,9 @@
 package jlox;
 
-import static jlox.TokenType.*;
+import jlox.common.TokenType;
+import static jlox.common.TokenType.*;
 import jlox.common.Token;
+import jlox.exceptions.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -227,10 +229,15 @@ public class Parser {
         }
     }
 
+    private boolean isAtTheEnd() {
+        final Token tk = this.currentToken();
+        return tk == null || tk.type == EOF;
+    }
+
     public List<Statement> parse() {
         List<Statement> statements = new ArrayList<>();
         try {
-            while (this.position < this.tokens.size()) {
+            while (!this.isAtTheEnd()) {
                 statements.add(this.statement());
             }
         } catch (ParseError err) {}

@@ -1,4 +1,5 @@
 package jlox.exceptions;
+import jlox.common.Token;
 
 public class RuntimeError extends RuntimeException {
 

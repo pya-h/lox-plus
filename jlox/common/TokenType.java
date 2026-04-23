@@ -1,6 +1,6 @@
 package jlox.common;
 
-enum TokenType {
+public enum TokenType {
     // Single-character tokens.
     LEFT_PAREN,
     RIGHT_PAREN,

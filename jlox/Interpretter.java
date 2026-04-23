@@ -1,8 +1,11 @@
 package jlox;
 
-import static jlox.TokenType.*;
-import jlox.common.Token;
+import jlox.common.*;
 import jlox.exceptions.*;
+import static jlox.common.TokenType.*;
+
+import java.util.List;
+
 
 public class Interpretter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
 
@@ -10,10 +13,11 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
         return exp.accept(this);
     }
 
-    public void interpret(Expression fullExpression) {
+    public void interpret(List<Statement> statements) {
         try {
-            Object finalVal = this.evaluate(fullExpression);
-            System.out.println(stringify(finalVal));
+            for (Statement stmt : statements) {
+                stmt.accept(this);
+            }
         } catch (RuntimeError err) {
             Lox.panicAtRuntime(err);
         }
@@ -334,8 +338,15 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
     }
 
     @Override
-    public Void visitExpressionStatement(Statement.ExpressionStatement statement) {
-        this.evaluate(statement.expression);
+    public Void visitExpressionStatement(Statement.ExpressionStatement stmt) {
+        this.evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStatement(Statement.PrintStatement stmt) {
+        final Object value = this.evaluate(stmt.expression);
+        System.out.println(stringify(value));
         return null;
     }
 }
