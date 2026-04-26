@@ -13,25 +13,27 @@ public class FamilyGenerator {
 
     public static void prepareExpressionChildsParameters(Map<String, List<String>> childs, String baseClass) {
         childs.clear();
-        childs.put("Binary", Arrays.asList(baseClass + " left", "Token operator", baseClass + " right"));
+        childs.put("Variable", Arrays.asList("Token name"));
+        childs.put("Literal", Arrays.asList("Object value", "Literal.Types type")); // Remember to define Types enum too
         childs.put("Unary", Arrays.asList("Token operator", baseClass + " right"));
-        childs.put("Literal", Arrays.asList("Object value"));
-        childs.put("Grouping", Arrays.asList(baseClass + " expression"));
+        childs.put("Binary", Arrays.asList(baseClass + " left", "Token operator", baseClass + " right"));
+        childs.put("Ternary", Arrays.asList(baseClass + " left", "Token firstOperator", baseClass + " middle",
+                "Token secondOperator", baseClass + " right"));
+        childs.put("Grouping", Arrays.asList(baseClass + " inside"));
     }
 
     public static void prepareStatementChildsParameters(
-        Map<String, List<String>> childs,
-        String baseClass,
-        String... childNames
-    ) {
+            Map<String, List<String>> childs,
+            String baseClass,
+            String... childNames) {
         childs.clear();
         for (String child : childNames) {
             final String[] params = child.split("/");
-            if(params.length == 1) {
+            if (params.length == 1) {
                 childs.put(child + baseClass, Arrays.asList("Expression expression"));
             } else {
                 List<String> fields = new ArrayList<>();
-                for(int i = 1; i < params.length; i++) {
+                for (int i = 1; i < params.length; i++) {
                     String[] fieldDetails = params[i].split(":");
                     fields.add(fieldDetails[0] + " " + fieldDetails[1]);
                 }
@@ -43,13 +45,13 @@ public class FamilyGenerator {
 
     public static void main(String[] args) throws IOException, Exception {
         if (args.length < 3) {
-            final String name = new Object() {}.getClass().getEnclosingClass().getSimpleName();
+            final String name = new Object() {
+            }.getClass().getEnclosingClass().getSimpleName();
             System.err.println(
-                "[Usage] jlox.tools." +
-                    name +
-                    " " +
-                    "<generation-mode> <output-directory> <base-class> [<child1> <child2> ...]"
-            );
+                    "[Usage] jlox.tools." +
+                            name +
+                            " " +
+                            "<generation-mode> <output-directory> <base-class> [<child1> <child2> ...]");
             System.exit(64);
         }
         final String outDir = args[1];
@@ -77,10 +79,9 @@ public class FamilyGenerator {
     }
 
     public static void generate(
-        final String outputDirectory,
-        final String baseClass,
-        final Map<String, List<String>> subClasses
-    ) throws IOException, Exception {
+            final String outputDirectory,
+            final String baseClass,
+            final Map<String, List<String>> subClasses) throws IOException, Exception {
         PrintWriter writer = new PrintWriter(outputDirectory + "/" + baseClass + ".java");
         writer.println("package jlox;\n");
         writer.println("public abstract class " + baseClass + " {");
@@ -94,8 +95,8 @@ public class FamilyGenerator {
 
             final List<String> fields = subClasses.get(className);
             String subClassTabs = tabs + "\t",
-                constructorBody = "",
-                constructorDecleration = subClassTabs + "public " + className + "(";
+                    constructorBody = "",
+                    constructorDecleration = subClassTabs + "public " + className + "(";
             int i = fields.size();
             for (String fieldData : fields) {
                 constructorDecleration += fieldData;
@@ -104,8 +105,8 @@ public class FamilyGenerator {
                     writer.close();
                     throw new Exception("Insufficient field data at: " + fieldData);
                 }
-                constructorBody +=
-                    "\n" + subClassTabs + "\tthis." + data[data.length - 1] + " = " + data[data.length - 1] + ";";
+                constructorBody += "\n" + subClassTabs + "\tthis." + data[data.length - 1] + " = "
+                        + data[data.length - 1] + ";";
                 writer.println(subClassTabs + (data[0] != "final" ? "final" : "") + " " + fieldData + ";");
                 if (--i > 0) {
                     constructorDecleration += ", ";
@@ -118,8 +119,8 @@ public class FamilyGenerator {
 
             writer.println(tabs + "\t@Override<T>\n" + tabs + "\tT accept(Visitor<T> visitor) {");
             writer.println(
-                tabs + "\t\treturn visitor.visit" + getVisitorName(className, baseClass) + "(this);\n" + tabs + "\t}"
-            );
+                    tabs + "\t\treturn visitor.visit" + getVisitorName(className, baseClass) + "(this);\n" + tabs
+                            + "\t}");
             writer.println(tabs + "}\n");
         }
         writer.println("\tabstract <T> T accept(Visitor<T> visitor);\n}");
@@ -127,7 +128,9 @@ public class FamilyGenerator {
     }
 
     public static String getVisitorName(final String className, final String baseClass) {
-        return className.toLowerCase().contains(baseClass.toLowerCase()) ? className : className + baseClass; // prevent unnecessary repeats
+        return className.toLowerCase().contains(baseClass.toLowerCase()) ? className : className + baseClass; // prevent
+                                                                                                              // unnecessary
+                                                                                                              // repeats
     }
 
     public static void defineVisitor(PrintWriter writer, final String baseClass, final Set<String> subClasses) {
@@ -135,8 +138,7 @@ public class FamilyGenerator {
 
         for (String cls : subClasses) {
             writer.println(
-                "\t\tT visit" + getVisitorName(cls, baseClass) + "(" + cls + " " + baseClass.toLowerCase() + ");"
-            );
+                    "\t\tT visit" + getVisitorName(cls, baseClass) + "(" + cls + " " + baseClass.toLowerCase() + ");");
         }
         writer.println("\t}\n");
     }

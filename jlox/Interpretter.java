@@ -8,6 +8,7 @@ import java.util.List;
 
 
 public class Interpretter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
+    private final Context globalContext = new Context();
 
     public Object evaluate(Expression exp) {
         return exp.accept(this);
@@ -174,6 +175,11 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
                 break;
         }
         return null;
+    }
+
+    @Override
+    public Object visitVariableExpression(Expression.Variable expression) {
+        return this.globalContext.get(expression.name);
     }
 
     private static String concaterateToStringOrNumber(
@@ -347,6 +353,13 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
     public Void visitPrintStatement(Statement.PrintStatement stmt) {
         final Object value = this.evaluate(stmt.expression);
         System.out.println(stringify(value));
+        return null;
+    }
+
+    @Override
+    public Void visitVariableStatement(Statement.VariableStatement stmt) {
+        final Object value = this.evaluate(stmt.expression);
+        this.globalContext.define(stmt.name, value);
         return null;
     }
 }

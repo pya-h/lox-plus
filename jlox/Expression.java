@@ -13,6 +13,8 @@ public abstract class Expression {
         T visitUnaryExpression(Unary expression);
 
         T visitTernaryExpression(Ternary expTernary);
+
+        T visitVariableExpression(Variable expression);
     }
 
     public static class Literal extends Expression {
@@ -110,6 +112,19 @@ public abstract class Expression {
             return visitor.visitUnaryExpression(this);
         }
     }
+
+    public static class Variable extends Expression {
+		final Token name;
+
+		public Variable(Token name) {
+			this.name = name;
+		}
+
+		@Override<T>
+		T accept(Visitor<T> visitor) {
+			return visitor.visitVariableExpression(this);
+		}
+	}
 
     abstract <T> T accept(Visitor<T> visitor);
 }

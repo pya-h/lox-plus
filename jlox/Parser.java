@@ -72,10 +72,16 @@ public class Parser {
     }
 
     private Statement declerationOrStatement() {
-        if(this.matches(DEF)) {
-            return this.variableDefinitionStatement();
+        try {
+
+            if(this.matches(DEF)) {
+                return this.variableDefinitionStatement();
+            }
+            return this.statement();
+        } catch(ParseError err) {
+            this.synchronize();
+            return null;
         }
-        return this.statement();
     }
 
     private Statement statement() {
@@ -208,6 +214,8 @@ public class Parser {
                     this.expect(RIGHT_PAREN, "Unclosed parenthesis detected!");
                     return new Expression.Grouping(inside);
                 }
+                case IDENTIFIER:
+                    return new Expression.Variable(token);
             }
         }
         throw error(token, "What The Actual FUCK?!");
