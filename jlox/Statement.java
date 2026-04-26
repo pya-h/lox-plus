@@ -1,5 +1,7 @@
 package jlox;
 
+import jlox.common.Token;
+
 public abstract class Statement {
 	public interface Visitor<T> {
 		T visitVariableStatement(VariableStatement statement);

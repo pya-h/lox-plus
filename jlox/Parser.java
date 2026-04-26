@@ -39,7 +39,8 @@ public class Parser {
 
     private boolean matches(TokenType... types) {
         final Token token = this.currentToken();
-        if (token == null) return false;
+        if (token == null)
+            return false;
 
         for (TokenType tokenType : types) {
             if (tokenType == token.type) {
@@ -56,12 +57,25 @@ public class Parser {
         return value;
     }
 
+    private Statement variableDefinitionStatement() {
+        final Token variableName = this.expect(IDENTIFIER, "Missing variable name!");
+        this.expect(EQUAL, "Uninitialized variables are not allowed.");
+        return new Statement.VariableStatement(variableName, this.extractSingleStatementExpression());
+    }
+
     private Statement printStatement() {
         return new Statement.PrintStatement(this.extractSingleStatementExpression());
     }
 
     private Statement expressionStatement() {
         return new Statement.ExpressionStatement(this.extractSingleStatementExpression());
+    }
+
+    private Statement declerationOrStatement() {
+        if(this.matches(DEF)) {
+            return this.variableDefinitionStatement();
+        }
+        return this.statement();
     }
 
     private Statement statement() {
@@ -85,11 +99,10 @@ public class Parser {
                 // TODO: In future, checkout this path can not lead to anything else
                 // (re-assurance)
                 throw error(
-                    operator,
-                    "Ternary operator: `" +
-                        operator.lexeme +
-                        "!` requires 3 operands, Which here the third one seems missing!"
-                );
+                        operator,
+                        "Ternary operator: `" +
+                                operator.lexeme +
+                                "!` requires 3 operands, Which here the third one seems missing!");
             }
             Token secondOperator = tokens.get(this.position - 1);
             Expression right = this.ternary();
@@ -110,7 +123,7 @@ public class Parser {
             Expression.Literal literal = (Expression.Literal) right;
             switch (literal.type) {
                 case Expression.Literal.Types.BOOL: // DECIDE: Allow mathematical operators on BOOLs? [e.g. * for AND, +
-                // for OR, etc..]
+                    // for OR, etc..]
                 case Expression.Literal.Types.NONE:
                     if (operator.type != EQUAL_EQUAL && operator.type != BANG_EQUAL) {
                         throw this.error(operator, "Invalid operand for `" + operator.lexeme + "`!");
@@ -119,9 +132,9 @@ public class Parser {
                 case Expression.Literal.Types.STRING:
                     if (operator.type == FORTH_SLASH || operator.type == PERCENTAGE) {
                         throw this.error(
-                            operator,
-                            "Invalid operator `" + operator.lexeme + "` used on string(s): '" + literal.value + "'!"
-                        );
+                                operator,
+                                "Invalid operator `" + operator.lexeme + "` used on string(s): '" + literal.value
+                                        + "'!");
                     }
                     break;
                 default:
@@ -207,11 +220,8 @@ public class Parser {
         if (++this.position >= tokensCount) {
             return;
         }
-        for (
-            Token token = this.tokens.get(this.position - 1);
-            token.type != SEMICOLON && this.position < tokensCount;
-            this.position++
-        ) {
+        for (Token token = this.tokens.get(this.position - 1); token.type != SEMICOLON
+                && this.position < tokensCount; this.position++) {
             token = this.tokens.get(this.position);
             switch (token.type) {
                 case CLASS:
@@ -238,9 +248,10 @@ public class Parser {
         List<Statement> statements = new ArrayList<>();
         try {
             while (!this.isAtTheEnd()) {
-                statements.add(this.statement());
+                statements.add(this.declerationOrStatement());
             }
-        } catch (ParseError err) {}
+        } catch (ParseError err) {
+        }
         return statements;
     }
 }
