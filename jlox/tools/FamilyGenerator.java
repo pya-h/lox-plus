@@ -2,6 +2,7 @@ package jlox.tools;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +26,18 @@ public class FamilyGenerator {
     ) {
         childs.clear();
         for (String child : childNames) {
-            childs.put(child + baseClass, Arrays.asList("Expression expression"));
+            final String[] params = child.split("/");
+            if(params.length == 1) {
+                childs.put(child + baseClass, Arrays.asList("Expression expression"));
+            } else {
+                List<String> fields = new ArrayList<>();
+                for(int i = 1; i < params.length; i++) {
+                    String[] fieldDetails = params[i].split(":");
+                    fields.add(fieldDetails[0] + " " + fieldDetails[1]);
+                }
+                fields.add("Expression expression");
+                childs.put(params[0] + baseClass, fields);
+            }
         }
     }
 
