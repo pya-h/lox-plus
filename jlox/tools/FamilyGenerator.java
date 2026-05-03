@@ -19,6 +19,7 @@ public class FamilyGenerator {
         childs.put("Binary", Arrays.asList(baseClass + " left", "Token operator", baseClass + " right"));
         childs.put("Ternary", Arrays.asList(baseClass + " left", "Token firstOperator", baseClass + " middle",
                 "Token secondOperator", baseClass + " right"));
+        childs.put("Assignment", Arrays.asList(" Token name", baseClass + " value"));
         childs.put("Grouping", Arrays.asList(baseClass + " inside"));
     }
 

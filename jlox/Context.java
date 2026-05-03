@@ -11,6 +11,13 @@ public class Context {
         this.identifiers.put(identifier.lexeme, value);
     }
 
+    public void assign(Token identifier, Object value) {
+        if(!this.identifiers.containsKey(identifier.lexeme)) {
+            throw new RuntimeError(identifier, "Undefined identifier: `" + identifier.lexeme + "`.");
+        }
+        this.identifiers.put(identifier.lexeme, value);
+    }
+
     public Object get(Token identifier) {
         if(!this.identifiers.containsKey(identifier.lexeme)) {
             throw new RuntimeError(identifier, "Undefined identifier: `" + identifier.lexeme + "`.");

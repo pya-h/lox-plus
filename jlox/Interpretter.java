@@ -344,6 +344,13 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
     }
 
     @Override
+    public Object visitAssignmentExpression(Expression.Assignment expression) {
+        final Object rValue = this.evaluate(expression.rightHand);
+        this.globalContext.assign(expression.leftHand, rValue);
+        return rValue;
+    }
+
+    @Override
     public Void visitExpressionStatement(Statement.ExpressionStatement stmt) {
         this.evaluate(stmt.expression);
         return null;

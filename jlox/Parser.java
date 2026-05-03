@@ -92,7 +92,21 @@ public class Parser {
     }
 
     private Expression expression() {
-        return this.ternary();
+        return this.assignment();
+    }
+
+    private Expression assignment() {
+        final Expression left = this.ternary();
+        if(!this.matches(EQUAL)) {
+            return left;
+        }
+
+        final Token operator = this.tokens.get(this.position - 1);
+        final Expression right = this.assignment();
+        if(!(left instanceof Expression.Variable)) {
+            this.error(operator, "Invalid lvalue before assignment!");
+        }
+        return new Expression.Assignment(((Expression.Variable) left).name, right);
     }
 
     private Expression ternary() {

@@ -15,6 +15,8 @@ public abstract class Expression {
         T visitTernaryExpression(Ternary expTernary);
 
         T visitVariableExpression(Variable expression);
+
+        T visitAssignmentExpression(Assignment expression);
     }
 
     public static class Literal extends Expression {
@@ -51,6 +53,21 @@ public abstract class Expression {
         @Override
         <T> T accept(Visitor<T> visitor) {
             return visitor.visitGroupingExpression(this);
+        }
+    }
+
+    public static class Assignment extends Expression {
+        final Token leftHand;
+        final Expression rightHand;
+
+        public Assignment(Token leftHand, Expression rightHand) {
+            this.leftHand = leftHand;
+            this.rightHand = rightHand;
+        }
+
+        @Override
+        <T> T accept(Visitor<T> visitor) {
+            return visitor.visitAssignmentExpression(this);
         }
     }
 
