@@ -18,11 +18,10 @@ public class Lox {
 
     public static void panicAtRuntime(RuntimeError err) {
         System.err.printf(
-            "X Program panicked!\n\t%s\n Operation: '%s' @ LINE#%d\n",
-            err.getMessage(),
-            err.operation.lexeme,
-            err.operation.line
-        );
+                "X Program panicked!\n\t%s\n Operation: '%s' @ LINE#%d\n",
+                err.getMessage(),
+                err.operation.lexeme,
+                err.operation.line);
         recentError = err;
     }
 
@@ -49,11 +48,47 @@ public class Lox {
 
         while (true) {
             System.out.print("> ");
-            final String line = reader.readLine();
-            if (line == null) break;
-            run(line);
+            goAheadAndRun(reader);
             recentError = null;
         }
+    }
+
+    public static <T extends Number & Comparable<T>> T maximum(T[] numbers) {
+        T max = numbers[0];
+        for(int i = 1; i < numbers.length; i++) {
+            if( max.compareTo(numbers[i]) < 0) {
+                max = numbers[i];
+            }
+        }
+        return max;
+    }
+
+    public static void goAheadAndRun(BufferedReader reader) throws IOException {
+        final char[] openers = {'{', '[', '('}, closers = {'}', ']', ')'}; 
+        final Integer[] repeats = {0, 0, 0};
+        final StringBuilder code = new StringBuilder();
+        boolean allCosed = true;
+        do {
+            allCosed = true;
+            for(int i = 0; i < maximum(repeats); i++) {
+                System.out.print("\t");
+            }
+            String line = reader.readLine().trim();
+            if (line == null || line.length() == 0) {
+                return;
+            }
+            code.append(line);
+            final char lastChar = line.charAt(line.length() - 1);
+            for(int i = 0; i < openers.length; i++) {
+                if(lastChar == openers[i]) {
+                    repeats[i]++;
+                } else if(lastChar == closers[i]) {
+                    repeats[i]--;
+                }
+                allCosed = allCosed && repeats[i] == 0;
+            }
+        } while(!allCosed);
+        run(code.toString());
     }
 
     public static void showSyntaxTree(Expression expr) {
@@ -87,10 +122,9 @@ public class Lox {
 
     public static void error(Token token, Exception err) {
         report(
-            token.line,
-            err.getMessage(),
-            token.type != TokenType.EOF ? String.format("'%s'", token.lexeme) : " @ END"
-        );
+                token.line,
+                err.getMessage(),
+                token.type != TokenType.EOF ? String.format("'%s'", token.lexeme) : " @ END");
         recentError = err;
     }
 
