@@ -8,7 +8,7 @@ import java.util.List;
 
 
 public class Interpretter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
-    private final Context globalContext = new Context();
+    private Context currentScopeContext = new Context();
 
     public Object evaluate(Expression exp) {
         return exp.accept(this);
@@ -21,6 +21,19 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
             }
         } catch (RuntimeError err) {
             Lox.panicAtRuntime(err);
+        }
+    }
+
+    public void executeBlock(List<Statement> statements, Context blockScopeCtx) {
+        final Context previousContext = this.currentScopeContext;
+
+        try {
+            this.currentScopeContext = blockScopeCtx;
+            for(Statement stmt: statements) {
+                stmt.accept(this);
+            }
+        } finally {
+            this.currentScopeContext = previousContext;
         }
     }
 
@@ -179,7 +192,7 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
 
     @Override
     public Object visitVariableExpression(Expression.Variable expression) {
-        return this.globalContext.get(expression.name);
+        return this.currentScopeContext.get(expression.name);
     }
 
     private static String concaterateToStringOrNumber(
@@ -346,7 +359,7 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
     @Override
     public Object visitAssignmentExpression(Expression.Assignment expression) {
         final Object rValue = this.evaluate(expression.rightHand);
-        this.globalContext.assign(expression.leftHand, rValue);
+        this.currentScopeContext.assign(expression.leftHand, rValue);
         return rValue;
     }
 
@@ -366,7 +379,13 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
     @Override
     public Void visitVariableStatement(Statement.VariableStatement stmt) {
         final Object value = this.evaluate(stmt.expression);
-        this.globalContext.define(stmt.name, value);
+        this.currentScopeContext.define(stmt.name, value);
+        return null;
+    }
+
+    @Override
+    public Void visitBlockStatement(Statement.BlockStatement block) {
+        this.executeBlock(block.statements, new Context(this.currentScopeContext));
         return null;
     }
 }

@@ -1,5 +1,7 @@
 package jlox;
 
+import java.util.List;
+
 import jlox.common.Token;
 
 public abstract class Statement {
@@ -7,6 +9,7 @@ public abstract class Statement {
 		T visitVariableStatement(VariableStatement statement);
 		T visitExpressionStatement(ExpressionStatement statement);
 		T visitPrintStatement(PrintStatement statement);
+		T visitBlockStatement(BlockStatement block);
 	}
 
 	public static class VariableStatement extends Statement {
@@ -47,6 +50,19 @@ public abstract class Statement {
 		@Override<T>
 		T accept(Visitor<T> visitor) {
 			return visitor.visitPrintStatement(this);
+		}
+	}
+
+	public static class BlockStatement extends Statement {
+		final List<Statement> statements;
+
+		public BlockStatement(List<Statement> statements) {
+			this.statements = statements;
+		}
+
+		@Override<T>
+		T accept(Visitor<T> visitor) {
+			return visitor.visitBlockStatement(this);
 		}
 	}
 

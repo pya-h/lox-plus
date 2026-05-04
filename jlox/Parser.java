@@ -53,7 +53,7 @@ public class Parser {
 
     private Expression extractSingleStatementExpression() {
         Expression value = expression();
-        expect(SEMICOLON, "Missing semicolon!");
+        this.expect(SEMICOLON, "Missing semicolon!");
         return value;
     }
 
@@ -71,10 +71,19 @@ public class Parser {
         return new Statement.ExpressionStatement(this.extractSingleStatementExpression());
     }
 
+    private List<Statement> extractBlock() {
+        List<Statement> stmts = new ArrayList<>();
+        while(this.checkTokenIsNot(EOF, RIGHT_BRACE)) {
+            stmts.add(this.declerationOrStatement());
+        }
+        this.expect(RIGHT_BRACE, "Block not closed properly!");
+        return stmts;
+    }
+
     private Statement declerationOrStatement() {
         try {
 
-            if(this.matches(DEF)) {
+            if(this.matches(LX)) {
                 return this.variableDefinitionStatement();
             }
             return this.statement();
@@ -87,6 +96,9 @@ public class Parser {
     private Statement statement() {
         if (this.matches(PRINT)) {
             return printStatement();
+        }
+        if(this.matches(LEFT_BRACE)) {
+            return new Statement.BlockStatement(this.extractBlock());
         }
         return expressionStatement();
     }
@@ -116,8 +128,6 @@ public class Parser {
             Token operator = tokens.get(this.position - 1);
             Expression middle = this.ternary();
             if (!this.matches(BANG)) {
-                // TODO: In future, checkout this path can not lead to anything else
-                // (re-assurance)
                 throw error(
                         operator,
                         "Ternary operator: `" +
@@ -251,10 +261,10 @@ public class Parser {
                 case OTHERWISE:
                 case FOR:
                 case LOOP:
-                case DEF:
+                case LX:
                 case PRINT:
                 case RETURN:
-                case FUN:
+                case FX:
                 case EOF:
                     return;
             }
@@ -264,6 +274,19 @@ public class Parser {
     private boolean isAtTheEnd() {
         final Token tk = this.currentToken();
         return tk == null || tk.type == EOF;
+    }
+
+    private boolean checkTokenIsNot(TokenType... types) {
+        final Token tk = this.currentToken();
+        if(tk == null) {
+            return false;
+        }
+        for(TokenType tt: types) {
+            if(tt == tk.type) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public List<Statement> parse() {

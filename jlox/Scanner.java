@@ -22,7 +22,7 @@ public class Scanner {
         keywords.put("otherwise", OTHERWISE);
         keywords.put("F", FALSE);
         keywords.put("for", FOR);
-        keywords.put("fun", FUN);
+        keywords.put("fx", FX);
         keywords.put("if", IF);
         keywords.put("nil", NIL);
         keywords.put("print", PRINT);
@@ -30,7 +30,7 @@ public class Scanner {
         keywords.put("parent", PARENT);
         keywords.put("this", THIS);
         keywords.put("T", TRUE);
-        keywords.put("def", DEF);
+        keywords.put("lx", LX);
         keywords.put("loop", LOOP);
     }
 

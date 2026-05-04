@@ -42,7 +42,7 @@ public enum TokenType {
     CLASS,
     OTHERWISE,
     FALSE,
-    FUN,
+    FX,
     FOR,
     IF,
     NIL,
@@ -53,7 +53,7 @@ public enum TokenType {
     PARENT,
     THIS,
     TRUE,
-    DEF,
+    LX,
     LOOP,
     EOF,
 }
