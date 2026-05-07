@@ -39,13 +39,14 @@ public class Lox {
     }
 
     public static void runScript(String filename) throws IOException {
+        interpretter.setREPLMode(false);
         final byte[] bytes = Files.readAllBytes(Paths.get(filename));
         run(new String(bytes, Charset.defaultCharset()));
     }
 
     public static void runPrompt() throws IOException {
         final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
+        interpretter.setREPLMode(true);
         while (true) {
             System.out.print("> ");
             goAheadAndRun(reader);

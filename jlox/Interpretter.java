@@ -9,6 +9,11 @@ import java.util.List;
 
 public class Interpretter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
     private Context currentScopeContext = new Context();
+    private boolean inREPLMode = false;
+
+    public void setREPLMode(boolean value) {
+        this.inREPLMode = value;
+    }
 
     public Object evaluate(Expression exp) {
         return exp.accept(this);
@@ -365,7 +370,10 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
 
     @Override
     public Void visitExpressionStatement(Statement.ExpressionStatement stmt) {
-        this.evaluate(stmt.expression);
+        final Object value = this.evaluate(stmt.expression);
+        if(this.inREPLMode) {
+            System.out.println(stringify(value));
+        }
         return null;
     }
 
