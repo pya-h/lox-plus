@@ -68,27 +68,36 @@ public class Lox {
         final char[] openers = {'{', '[', '('}, closers = {'}', ']', ')'}; 
         final Integer[] repeats = {0, 0, 0};
         final StringBuilder code = new StringBuilder();
-        boolean allCosed = true;
+        boolean allClosed = true;
         do {
-            allCosed = true;
-            for(int i = 0; i < maximum(repeats); i++) {
-                System.out.print("\t");
-            }
+            allClosed = true;
+
             String line = reader.readLine().trim();
             if (line == null || line.length() == 0) {
-                return;
+                final Integer mx = maximum(repeats);
+                if(mx == 0) 
+                    return;
+                for(int i = 0; i < mx - 1; i++) {
+                    System.out.print("\t");
+                }
+                allClosed = false;
+                continue;
             }
             code.append(line);
             final char lastChar = line.charAt(line.length() - 1);
             for(int i = 0; i < openers.length; i++) {
-                if(lastChar == openers[i]) {
+                if(lastChar == openers[i] || line.charAt(0) == openers[i]) {
                     repeats[i]++;
-                } else if(lastChar == closers[i]) {
-                    repeats[i]--;
+                } 
+                if(lastChar == closers[i] || line.charAt(0) == closers[i]) {
+                    repeats[i] = Math.max(0, repeats[i] - 1);
                 }
-                allCosed = allCosed && repeats[i] == 0;
+                allClosed = allClosed && repeats[i] <= 0;
             }
-        } while(!allCosed);
+            for(int i = 0; i < maximum(repeats); i++) {
+                System.out.print("\t");
+            }
+        } while(!allClosed);
         run(code.toString());
     }
 

@@ -396,4 +396,14 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
         this.executeBlock(block.statements, new Context(this.currentScopeContext));
         return null;
     }
+
+    @Override
+    public Void visitIfStatement(Statement.IfStatement stmt) {
+        if(this.toBoolean(stmt.condition)) {
+            stmt.thenBranch.accept(this);
+        } else if(stmt.otherwiseBranch != null) {
+            stmt.otherwiseBranch.accept(this);
+        }
+        return null;
+    }
 }

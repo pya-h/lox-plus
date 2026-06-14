@@ -67,13 +67,18 @@ public class Parser {
         return new Statement.PrintStatement(this.extractSingleStatementExpression());
     }
 
+    private Statement ifStatement() {
+        return new Statement.IfStatement(this.expression(), this.statement(),
+                this.matches(OTHERWISE) ? this.statement() : null);
+    }
+
     private Statement expressionStatement() {
         return new Statement.ExpressionStatement(this.extractSingleStatementExpression());
     }
 
     private List<Statement> extractBlock() {
         List<Statement> stmts = new ArrayList<>();
-        while(this.checkTokenIsNot(EOF, RIGHT_BRACE)) {
+        while (this.checkTokenIsNot(EOF, RIGHT_BRACE)) {
             stmts.add(this.declerationOrStatement());
         }
         this.expect(RIGHT_BRACE, "Block not closed properly!");
@@ -83,11 +88,11 @@ public class Parser {
     private Statement declerationOrStatement() {
         try {
 
-            if(this.matches(LX)) {
+            if (this.matches(LX)) {
                 return this.variableDefinitionStatement();
             }
             return this.statement();
-        } catch(ParseError err) {
+        } catch (ParseError err) {
             this.synchronize();
             return null;
         }
@@ -97,7 +102,10 @@ public class Parser {
         if (this.matches(PRINT)) {
             return printStatement();
         }
-        if(this.matches(LEFT_BRACE)) {
+        if (this.matches(IF)) {
+            return ifStatement();
+        }
+        if (this.matches(LEFT_BRACE)) {
             return new Statement.BlockStatement(this.extractBlock());
         }
         return expressionStatement();
@@ -109,13 +117,13 @@ public class Parser {
 
     private Expression assignment() {
         final Expression left = this.ternary();
-        if(!this.matches(EQUAL)) {
+        if (!this.matches(EQUAL)) {
             return left;
         }
 
         final Token operator = this.tokens.get(this.position - 1);
         final Expression right = this.assignment();
-        if(!(left instanceof Expression.Variable)) {
+        if (!(left instanceof Expression.Variable)) {
             this.error(operator, "Invalid lvalue before assignment!");
         }
         return new Expression.Assignment(((Expression.Variable) left).name, right);
@@ -278,11 +286,11 @@ public class Parser {
 
     private boolean checkTokenIsNot(TokenType... types) {
         final Token tk = this.currentToken();
-        if(tk == null) {
+        if (tk == null) {
             return false;
         }
-        for(TokenType tt: types) {
-            if(tt == tk.type) {
+        for (TokenType tt : types) {
+            if (tt == tk.type) {
                 return false;
             }
         }
