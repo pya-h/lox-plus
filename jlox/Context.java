@@ -25,6 +25,7 @@ public class Context {
             Context parentWhoKnows = this.findWhoKnows(identifier.lexeme);
             if(parentWhoKnows != null) {
                 parentWhoKnows.assign(identifier, value);
+                return;
             }
             throw new RuntimeError(identifier, "Undefined identifier: `" + identifier.lexeme + "`.");
         }
@@ -42,7 +43,7 @@ public class Context {
         return this.identifiers.get(identifier.lexeme);
     }
 
-    private Object getChained(Token identifier) {
+    public Object getChained(Token identifier) {
         if (this.knows(identifier)) {
             return this.identifiers.get(identifier.lexeme);
         }

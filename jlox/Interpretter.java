@@ -406,4 +406,21 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
         }
         return null;
     }
+
+    @Override
+    public Void visitLoopStatement(Statement.LoopStatement loop) {
+        Boolean lastConditionEvaluation = this.toBoolean(loop.condition);
+        if(lastConditionEvaluation) {
+            while(lastConditionEvaluation) {
+                loop.body.accept(this);
+                lastConditionEvaluation = this.toBoolean(loop.condition);
+            }
+        } else if(loop.backwardBody != null) {
+            while(!lastConditionEvaluation) {
+                loop.backwardBody.accept(this);
+                lastConditionEvaluation = this.toBoolean(loop.condition);
+            }
+        }
+        return null;
+    }
 }

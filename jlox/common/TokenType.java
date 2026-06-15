@@ -55,5 +55,6 @@ public enum TokenType {
     TRUE,
     LX,
     LOOP,
+    BACKWARD,
     EOF,
 }

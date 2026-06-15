@@ -11,6 +11,7 @@ public abstract class Statement {
 		T visitPrintStatement(PrintStatement statement);
 		T visitBlockStatement(BlockStatement block);
 		T visitIfStatement(IfStatement statement);
+		T visitLoopStatement(LoopStatement loop);
 	}
 
 	public static class VariableStatement extends Statement {
@@ -86,6 +87,28 @@ public abstract class Statement {
 		@Override<T>
 		T accept(Visitor<T> visitor) {
 			return visitor.visitIfStatement(this);
+		}
+	}
+
+	public static class LoopStatement extends Statement {
+		final Expression condition;
+		final Statement body, backwardBody;
+		
+		public LoopStatement(Expression condition, Statement body) {
+			this.condition = condition;
+			this.body = body;
+			this.backwardBody = null;
+		}
+
+		public LoopStatement(Expression condition, Statement body, Statement backwardBody) {
+			this.condition = condition;
+			this.body = body;
+			this.backwardBody = backwardBody;
+		}
+
+		@Override<T>
+		T accept(Visitor<T> visitor) {
+			return visitor.visitLoopStatement(this);
 		}
 	}
 

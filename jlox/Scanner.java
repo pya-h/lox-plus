@@ -32,6 +32,7 @@ public class Scanner {
         keywords.put("T", TRUE);
         keywords.put("lx", LX);
         keywords.put("loop", LOOP);
+        keywords.put("backward", BACKWARD);
     }
 
     private final String source;

@@ -72,6 +72,11 @@ public class Parser {
                 this.matches(OTHERWISE) ? this.statement() : null);
     }
 
+    private Statement loopStatement() {
+        return new Statement.LoopStatement(this.expression(), this.statement(),
+                this.matches(BACKWARD) ? this.statement() : null);
+    }
+
     private Statement expressionStatement() {
         return new Statement.ExpressionStatement(this.extractSingleStatementExpression());
     }
@@ -104,6 +109,9 @@ public class Parser {
         }
         if (this.matches(IF)) {
             return ifStatement();
+        }
+        if(this.matches(LOOP)) {
+            return this.loopStatement();
         }
         if (this.matches(LEFT_BRACE)) {
             return new Statement.BlockStatement(this.extractBlock());
