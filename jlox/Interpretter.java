@@ -43,7 +43,10 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
     }
 
     public boolean toBoolean(Expression exp) {
-        final Object value = this.evaluate(exp);
+        return this.toBoolean(this.evaluate(exp));
+    }
+
+    public boolean toBoolean(Object value) {
         if (value == null) {
             return false;
         }
@@ -359,6 +362,33 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
             return this.toBoolean(expression.left) ? this.evaluate(expression.middle) : this.evaluate(expression.right);
         }
         return null;
+    }
+
+    @SuppressWarnings("incomplete-switch")
+    @Override
+    public Object visitLogicalExpression(Expression.Logical expression) {
+        final Object left = this.evaluate(expression.left);
+        final boolean leftIsTrue = this.toBoolean(left);
+        switch(expression.operator.type) {
+            case OR:
+                if(leftIsTrue) {
+                    return left;
+                } break;
+            case AND:
+                if(!leftIsTrue) {
+                    return left;
+                } break;
+            case NAND:
+                if(!leftIsTrue) {
+                    return true;
+                }
+                return !this.toBoolean(expression.right);
+            case XOR:
+                if(leftIsTrue) {
+                    return !this.toBoolean(expression.right) ? left : false;
+                }
+        }
+        return this.evaluate(expression.right);
     }
 
     @Override
