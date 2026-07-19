@@ -69,7 +69,7 @@ public class Parser {
 
     private Statement ifStatement() {
         return new Statement.IfStatement(this.expression(), this.statement(),
-                this.matches(OTHERWISE) ? this.statement() : null);
+                this.matches(ELSE) ? this.statement() : null);
     }
 
     private Statement loopStatement() {
@@ -274,7 +274,7 @@ public class Parser {
             switch (token.type) {
                 case CLASS:
                 case IF:
-                case OTHERWISE:
+                case ELSE:
                 case FOR:
                 case LOOP:
                 case LX:

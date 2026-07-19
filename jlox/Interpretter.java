@@ -401,8 +401,8 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
     public Void visitIfStatement(Statement.IfStatement stmt) {
         if(this.toBoolean(stmt.condition)) {
             stmt.thenBranch.accept(this);
-        } else if(stmt.otherwiseBranch != null) {
-            stmt.otherwiseBranch.accept(this);
+        } else if(stmt.elseBranch != null) {
+            stmt.elseBranch.accept(this);
         }
         return null;
     }

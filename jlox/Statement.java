@@ -70,18 +70,18 @@ public abstract class Statement {
 
 	public static class IfStatement extends Statement {
 		final Expression condition;
-		final Statement thenBranch, otherwiseBranch;
+		final Statement thenBranch, elseBranch;
 
-		public IfStatement(Expression condition, Statement thenBranch, Statement otherwiseBranch) {
+		public IfStatement(Expression condition, Statement thenBranch, Statement elseBranch) {
 			this.condition = condition;
 			this.thenBranch = thenBranch;
-			this.otherwiseBranch = otherwiseBranch;
+			this.elseBranch = elseBranch;
 		}
 
 		public IfStatement(Expression condition, Statement thenBranch) {
 			this.condition = condition;
 			this.thenBranch = thenBranch;
-			this.otherwiseBranch = null;
+			this.elseBranch = null;
 		}
 
 		@Override<T>

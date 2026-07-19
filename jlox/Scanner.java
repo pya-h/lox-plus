@@ -19,7 +19,7 @@ public class Scanner {
         keywords.put("or", OR);
         keywords.put("xor", XOR);
         keywords.put("class", CLASS);
-        keywords.put("otherwise", OTHERWISE);
+        keywords.put("else", ELSE);
         keywords.put("F", FALSE);
         keywords.put("for", FOR);
         keywords.put("fx", FX);

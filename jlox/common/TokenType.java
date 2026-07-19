@@ -40,7 +40,7 @@ public enum TokenType {
     // Keywords.
     AND,
     CLASS,
-    OTHERWISE,
+    ELSE,
     FALSE,
     FX,
     FOR,
