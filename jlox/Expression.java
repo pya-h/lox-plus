@@ -10,6 +10,8 @@ public abstract class Expression {
 
         T visitBinaryExpression(Binary expression);
 
+        T visitLogicalExpression(Logical Expression);
+
         T visitUnaryExpression(Unary expression);
 
         T visitTernaryExpression(Ternary expTernary);
@@ -111,6 +113,23 @@ public abstract class Expression {
         @Override
         <T> T accept(Visitor<T> visitor) {
             return visitor.visitBinaryExpression(this);
+        }
+    }
+
+    public static class Logical extends Expression {
+
+        Expression left, right;
+        Token operator;
+
+        public Logical(Expression left, Token operator, Expression right) {
+            this.left = left;
+            this.operator = operator;
+            this.right = right;
+        }
+
+        @Override
+        <T> T accept(Visitor<T> visitor) {
+            return visitor.visitLogicalExpression(this);
         }
     }
 

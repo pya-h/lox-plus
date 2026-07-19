@@ -138,7 +138,7 @@ public class Parser {
     }
 
     private Expression ternary() {
-        Expression left = this.equality();
+        Expression left = this.or();
 
         while (this.matches(QUESTION)) {
             Token operator = tokens.get(this.position - 1);
@@ -157,6 +157,14 @@ public class Parser {
         return left;
     }
 
+    private Expression or() {
+        return this.parseLogicalExpression(this::and);
+    }
+
+    private Expression and() {
+        return this.parseLogicalExpression(this::equality);
+    }
+
     private Expression getRightHandOperandChecked(Token operator, Supplier<Expression> rhsParserFunction) {
         Expression right;
         try {
@@ -171,7 +179,10 @@ public class Parser {
                 case Expression.Literal.Types.BOOL: // DECIDE: Allow mathematical operators on BOOLs? [e.g. * for AND, +
                     // for OR, etc..]
                 case Expression.Literal.Types.NONE:
-                    if (operator.type != EQUAL_EQUAL && operator.type != BANG_EQUAL) {
+                    if (operator.type != EQUAL_EQUAL && operator.type != BANG_EQUAL
+                        && operator.type != AND && operator.type != OR
+                        && operator.type != XOR && operator.type != NAND
+                    ) {
                         throw this.error(operator, "Invalid operand for `" + operator.lexeme + "`!");
                     }
                     break;
@@ -197,6 +208,18 @@ public class Parser {
             Token operator = tokens.get(this.position - 1);
             Expression right = this.getRightHandOperandChecked(operator, fnOperandParser);
             left = new Expression.Binary(left, operator, right);
+        }
+        return left;
+    }
+
+
+    private Expression parseLogicalExpression(Supplier<Expression> parser) {
+        Expression left = parser.get();
+
+        while (matches(OR, XOR, AND, NAND)) {
+            Token operator = tokens.get(this.position - 1);
+            Expression right = parser.get();
+            left = new Expression.Logical(left, operator, right);
         }
         return left;
     }

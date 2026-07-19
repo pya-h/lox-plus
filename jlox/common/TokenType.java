@@ -39,6 +39,7 @@ public enum TokenType {
 
     // Keywords.
     AND,
+    NAND,
     CLASS,
     ELSE,
     FALSE,

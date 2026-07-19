@@ -18,6 +18,7 @@ public class Scanner {
         keywords.put("and", AND);
         keywords.put("or", OR);
         keywords.put("xor", XOR);
+        keywords.put("nand", NAND);
         keywords.put("class", CLASS);
         keywords.put("else", ELSE);
         keywords.put("F", FALSE);
