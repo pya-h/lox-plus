@@ -2,6 +2,7 @@ package jlox;
 
 import jlox.common.TokenType;
 import static jlox.common.TokenType.*;
+
 import jlox.common.Token;
 import jlox.exceptions.*;
 
@@ -77,17 +78,44 @@ public class Parser {
                 this.matches(BACKWARD) ? this.statement() : null);
     }
 
+    private Statement forStatement() {
+        // Done by Desugering
+        final Statement initializer = this.matches(SEMICOLON) ? null
+                : this.matches(LX) ? this.variableDefinitionStatement() : this.expressionStatement();
+        final Expression conditionExp = this.checkTokenIsNot(SEMICOLON) ? this.expression() : null;
+        this.expect(SEMICOLON, "Expect `;` after for conditions!");
+        final Expression loopStepExp = this.checkTokenIsNot(LEFT_BRACE) ? this.expression() : null;
+
+        final Statement loopInitialBody = this.statement();
+        Statement backwardBody = null;
+        if (this.matches(BACKWARD)) {
+            final Expression backwardStepExp = this.checkTokenIsNot(LEFT_BRACE) ? this.expression() : null;
+            final Statement backwardInitialBody = this.statement();
+            backwardBody = backwardStepExp == null ? backwardInitialBody
+                    : Statement.BlockStatement.of(backwardInitialBody,
+                            new Statement.ExpressionStatement(backwardStepExp));
+        }
+
+        final Statement.LoopStatement loop = new Statement.LoopStatement(
+            conditionExp, 
+            loopStepExp == null ? loopInitialBody
+                : Statement.BlockStatement.of(loopInitialBody, new Statement.ExpressionStatement(loopStepExp)), 
+            backwardBody
+        );
+        return initializer == null ? loop : Statement.BlockStatement.of(initializer, loop);
+    }
+
     private Statement expressionStatement() {
         return new Statement.ExpressionStatement(this.extractSingleStatementExpression());
     }
 
-    private List<Statement> extractBlock() {
+    private Statement.BlockStatement nextBlock() {
         List<Statement> stmts = new ArrayList<>();
         while (this.checkTokenIsNot(EOF, RIGHT_BRACE)) {
             stmts.add(this.declerationOrStatement());
         }
         this.expect(RIGHT_BRACE, "Block not closed properly!");
-        return stmts;
+        return new Statement.BlockStatement(stmts);
     }
 
     private Statement declerationOrStatement() {
@@ -110,11 +138,14 @@ public class Parser {
         if (this.matches(IF)) {
             return ifStatement();
         }
-        if(this.matches(LOOP)) {
+        if (this.matches(LOOP)) {
             return this.loopStatement();
         }
+        if (this.matches(FOR)) {
+            return this.forStatement();
+        }
         if (this.matches(LEFT_BRACE)) {
-            return new Statement.BlockStatement(this.extractBlock());
+            return this.nextBlock();
         }
         return expressionStatement();
     }
@@ -158,11 +189,11 @@ public class Parser {
     }
 
     private Expression or() {
-        return this.parseLogicalExpression(this::and);
+        return this.parseLogicalExpression(this::and, OR, XOR);
     }
 
     private Expression and() {
-        return this.parseLogicalExpression(this::equality);
+        return this.parseLogicalExpression(this::equality, AND, NAND);
     }
 
     private Expression getRightHandOperandChecked(Token operator, Supplier<Expression> rhsParserFunction) {
@@ -180,9 +211,8 @@ public class Parser {
                     // for OR, etc..]
                 case Expression.Literal.Types.NONE:
                     if (operator.type != EQUAL_EQUAL && operator.type != BANG_EQUAL
-                        && operator.type != AND && operator.type != OR
-                        && operator.type != XOR && operator.type != NAND
-                    ) {
+                            && operator.type != AND && operator.type != OR
+                            && operator.type != XOR && operator.type != NAND) {
                         throw this.error(operator, "Invalid operand for `" + operator.lexeme + "`!");
                     }
                     break;
@@ -212,11 +242,10 @@ public class Parser {
         return left;
     }
 
-
-    private Expression parseLogicalExpression(Supplier<Expression> parser) {
+    private Expression parseLogicalExpression(Supplier<Expression> parser, TokenType... matchingTokens) {
         Expression left = parser.get();
 
-        while (matches(OR, XOR, AND, NAND)) {
+        while (this.matches(matchingTokens)) {
             Token operator = tokens.get(this.position - 1);
             Expression right = parser.get();
             left = new Expression.Logical(left, operator, right);

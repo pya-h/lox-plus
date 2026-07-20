@@ -62,6 +62,10 @@ public abstract class Statement {
 			this.statements = statements;
 		}
 
+		public static BlockStatement of(Statement... statements) {
+			return new BlockStatement(List.of(statements));
+		}
+
 		@Override<T>
 		T accept(Visitor<T> visitor) {
 			return visitor.visitBlockStatement(this);
@@ -93,7 +97,7 @@ public abstract class Statement {
 	public static class LoopStatement extends Statement {
 		final Expression condition;
 		final Statement body, backwardBody;
-		
+
 		public LoopStatement(Expression condition, Statement body) {
 			this.condition = condition;
 			this.body = body;

@@ -386,7 +386,7 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
             case XOR:
                 if(leftIsTrue) {
                     return !this.toBoolean(expression.right) ? left : false;
-                }
+                } break;
         }
         return this.evaluate(expression.right);
     }
