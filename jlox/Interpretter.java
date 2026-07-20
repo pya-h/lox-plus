@@ -4,12 +4,13 @@ import jlox.common.*;
 import jlox.exceptions.*;
 import static jlox.common.TokenType.*;
 
+import java.util.ArrayList;
 import java.util.List;
-
 
 public class Interpretter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
     private Context currentScopeContext = new Context();
     private boolean inREPLMode = false;
+    private ArrayList<Statement.JumpStatement> jumps = new ArrayList<>(); // TODO: Im not sure if this is necessary?
 
     public void setREPLMode(boolean value) {
         this.inREPLMode = value;
@@ -19,23 +20,51 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
         return exp.accept(this);
     }
 
+    public boolean execute(Statement stmt) {
+        if (this.checkShouldJump(stmt)) {
+            return false;
+        }
+        stmt.accept(this);
+        return true;
+    }
+
     public void interpret(List<Statement> statements) {
         try {
             for (Statement stmt : statements) {
-                stmt.accept(this);
+                if (!this.execute(stmt))
+                    break;
             }
         } catch (RuntimeError err) {
             Lox.panicAtRuntime(err);
         }
     }
 
-    public void executeBlock(List<Statement> statements, Context blockScopeCtx) {
+    private boolean checkShouldJump(Statement stmt) {
+        if (!this.jumps.isEmpty()) {
+            return true;
+        }
+        if (stmt instanceof Statement.JumpStatement) {
+            this.jumps.add((Statement.JumpStatement) stmt);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean hasBlockJumpedOut() {
+        if (this.jumps.isEmpty()) {
+            return false;
+        }
+        return this.jumps.removeLast().isJumpOut;
+    }
+
+    public void executeBlock(Statement.BlockStatement block, Context blockScopeCtx) {
         final Context previousContext = this.currentScopeContext;
 
         try {
             this.currentScopeContext = blockScopeCtx;
-            for(Statement stmt: statements) {
-                stmt.accept(this);
+            for (Statement stmt : block.statements) {
+                if (!this.execute(stmt))
+                    break;
             }
         } finally {
             this.currentScopeContext = previousContext;
@@ -94,7 +123,7 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
 
     public boolean areEqual(Expression first, Expression second) {
         final Object obj1st = this.evaluate(first),
-            obj2nd = this.evaluate(second);
+                obj2nd = this.evaluate(second);
         if (obj1st == null) {
             return obj2nd == null;
         }
@@ -103,15 +132,15 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
 
     private void checkOperandsAreNumeric(final Token operator, Object... operands) {
         checkOperandsAreNumeric(
-            operator,
-            "Operation requires numeric operand" + (operands.length > 1 ? "s." : "."),
-            operands
-        );
+                operator,
+                "Operation requires numeric operand" + (operands.length > 1 ? "s." : "."),
+                operands);
     }
 
     private void checkOperandsAreNumeric(final Token operator, String message, Object... operands) {
         for (Object operand : operands) {
-            if (!(operand instanceof Double)) throw new RuntimeError(operator, message);
+            if (!(operand instanceof Double))
+                throw new RuntimeError(operator, message);
         }
     }
 
@@ -121,7 +150,8 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
             int multiplicationCount = (int) dblOperand;
             if (multiplicationCount >= 0 && multiplicationCount == dblOperand) {
                 StringBuilder result = new StringBuilder();
-                for (; multiplicationCount > 0; multiplicationCount--, result.append(str));
+                for (; multiplicationCount > 0; multiplicationCount--, result.append(str))
+                    ;
                 return result.toString();
             }
         }
@@ -131,23 +161,23 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
     public static ComparisonResult compareStrings(final String left, final String right) {
         int iDiff = 0;
         final int minLength = Math.min(left.length(), right.length());
-        for (; iDiff < minLength && left.charAt(iDiff) == right.charAt(iDiff); iDiff++);
+        for (; iDiff < minLength && left.charAt(iDiff) == right.charAt(iDiff); iDiff++)
+            ;
         if (iDiff < minLength) {
             // difference character found
             return left.charAt(iDiff) < right.charAt(iDiff) ? ComparisonResult.SMALLER : ComparisonResult.LARGER;
         }
 
         return left.length() < right.length()
-            ? ComparisonResult.SMALLER
-            : (left.length() > right.length() ? ComparisonResult.LARGER : ComparisonResult.EQUAL);
+                ? ComparisonResult.SMALLER
+                : (left.length() > right.length() ? ComparisonResult.LARGER : ComparisonResult.EQUAL);
     }
 
     private static boolean handleLogicalOperatorOnString(
-        final Token operation,
-        final String str,
-        Object other,
-        ComparisonResult desiredResult
-    ) {
+            final Token operation,
+            final String str,
+            Object other,
+            ComparisonResult desiredResult) {
         final boolean orEqual = desiredResult != ComparisonResult.EQUAL && operation.lexeme.indexOf('=') > 0;
         if (other instanceof String) {
             final ComparisonResult compareResult = compareStrings(str, (String) other);
@@ -161,9 +191,8 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
             return desiredResult == ComparisonResult.SMALLER ? str.length() < dblOther : str.length() > dblOther;
         }
         throw new RuntimeError(
-            operation,
-            "Strings can only be compared with another String or length-compared with a number."
-        );
+                operation,
+                "Strings can only be compared with another String or length-compared with a number.");
     }
 
     @Override
@@ -204,11 +233,10 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
     }
 
     private static String concaterateToStringOrNumber(
-        final Token operation,
-        final String str,
-        Object other,
-        boolean reversed
-    ) {
+            final Token operation,
+            final String str,
+            Object other,
+            boolean reversed) {
         if (other == null) {
             throw new RuntimeError(operation, "Invalid concaterating of a String && Nothing!");
         }
@@ -224,7 +252,7 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
             // Numeric (or sometimes String) Operations
             case PLUS: {
                 final Object left = this.evaluate(expression.left),
-                    right = this.evaluate(expression.right);
+                        right = this.evaluate(expression.right);
                 if (left instanceof String) {
                     return concaterateToStringOrNumber(expression.operator, (String) left, right, false);
                 }
@@ -232,30 +260,28 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
                     return concaterateToStringOrNumber(expression.operator, (String) right, left, true);
                 }
                 this.checkOperandsAreNumeric(
-                    expression.operator,
-                    "Addition accepts operands of type Number or String only!",
-                    left,
-                    right
-                );
+                        expression.operator,
+                        "Addition accepts operands of type Number or String only!",
+                        left,
+                        right);
                 return (double) left + (double) right;
             }
             case MINUS: {
                 final Object left = this.evaluate(expression.left),
-                    right = this.evaluate(expression.right);
+                        right = this.evaluate(expression.right);
                 if (left instanceof String && right instanceof String) {
                     return ((String) left).replaceAll((String) right, "");
                 }
                 this.checkOperandsAreNumeric(
-                    expression.operator,
-                    "Substraction requires that operands be both Numeric or String!",
-                    left,
-                    right
-                );
+                        expression.operator,
+                        "Substraction requires that operands be both Numeric or String!",
+                        left,
+                        right);
                 return (double) left - (double) right;
             }
             case STAR: {
                 final Object left = this.evaluate(expression.left),
-                    right = this.evaluate(expression.right);
+                        right = this.evaluate(expression.right);
                 if (left instanceof String) {
                     return multiplyStringChecked(expression.operator, (String) left, right);
                 }
@@ -263,11 +289,10 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
                     return multiplyStringChecked(expression.operator, (String) right, left);
                 }
                 this.checkOperandsAreNumeric(
-                    expression.operator,
-                    "Multiplication is only allowed on a Number by another Number or String!",
-                    left,
-                    right
-                );
+                        expression.operator,
+                        "Multiplication is only allowed on a Number by another Number or String!",
+                        left,
+                        right);
 
                 return (double) left * (double) right;
             }
@@ -278,69 +303,63 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
                     throw new RuntimeError(expression.operator, "Division By Zero happenned!");
                 }
                 return expression.operator.type == FORTH_SLASH
-                    ? this.toNumberChecked(expression.operator, expression.left) / right
-                    : this.toNumberChecked(expression.operator, expression.left) % right;
+                        ? this.toNumberChecked(expression.operator, expression.left) / right
+                        : this.toNumberChecked(expression.operator, expression.left) % right;
             }
             // Logical
             case GREATER_EQUAL:
             case GREATER: {
                 final Object left = this.evaluate(expression.left),
-                    right = this.evaluate(expression.right);
+                        right = this.evaluate(expression.right);
                 if (left instanceof String) {
                     return handleLogicalOperatorOnString(
-                        expression.operator,
-                        (String) left,
-                        right,
-                        ComparisonResult.LARGER
-                    );
+                            expression.operator,
+                            (String) left,
+                            right,
+                            ComparisonResult.LARGER);
                 }
                 if (right instanceof String) {
                     return handleLogicalOperatorOnString(
-                        expression.operator,
-                        (String) right,
-                        left,
-                        ComparisonResult.SMALLER
-                    );
+                            expression.operator,
+                            (String) right,
+                            left,
+                            ComparisonResult.SMALLER);
                 }
                 this.checkOperandsAreNumeric(
-                    expression.operator,
-                    "Operation only accepts operands of type Number or String only!",
-                    left,
-                    right
-                );
+                        expression.operator,
+                        "Operation only accepts operands of type Number or String only!",
+                        left,
+                        right);
                 return expression.operator.type == GREATER_EQUAL
-                    ? (double) left >= (double) right
-                    : (double) left > (double) right;
+                        ? (double) left >= (double) right
+                        : (double) left > (double) right;
             }
             case LESS_EQUAL:
             case LESS: {
                 final Object left = this.evaluate(expression.left),
-                    right = this.evaluate(expression.right);
+                        right = this.evaluate(expression.right);
                 if (left instanceof String) {
                     return handleLogicalOperatorOnString(
-                        expression.operator,
-                        (String) left,
-                        right,
-                        ComparisonResult.SMALLER
-                    );
+                            expression.operator,
+                            (String) left,
+                            right,
+                            ComparisonResult.SMALLER);
                 }
                 if (right instanceof String) {
                     return handleLogicalOperatorOnString(
-                        expression.operator,
-                        (String) right,
-                        left,
-                        ComparisonResult.LARGER
-                    );
+                            expression.operator,
+                            (String) right,
+                            left,
+                            ComparisonResult.LARGER);
                 }
                 this.checkOperandsAreNumeric(
-                    expression.operator,
-                    "Operation only accepts operands of type Number or String only!",
-                    left,
-                    right
-                );
+                        expression.operator,
+                        "Operation only accepts operands of type Number or String only!",
+                        left,
+                        right);
                 return expression.operator.type == LESS_EQUAL
-                    ? (double) left <= (double) right
-                    : (double) left < (double) right;
+                        ? (double) left <= (double) right
+                        : (double) left < (double) right;
             }
             case EQUAL_EQUAL:
                 return this.areEqual(expression.left, expression.right);
@@ -369,24 +388,27 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
     public Object visitLogicalExpression(Expression.Logical expression) {
         final Object left = this.evaluate(expression.left);
         final boolean leftIsTrue = this.toBoolean(left);
-        switch(expression.operator.type) {
+        switch (expression.operator.type) {
             case OR:
-                if(leftIsTrue) {
+                if (leftIsTrue) {
                     return left;
-                } break;
+                }
+                break;
             case AND:
-                if(!leftIsTrue) {
+                if (!leftIsTrue) {
                     return left;
-                } break;
+                }
+                break;
             case NAND:
-                if(!leftIsTrue) {
+                if (!leftIsTrue) {
                     return true;
                 }
                 return !this.toBoolean(expression.right);
             case XOR:
-                if(leftIsTrue) {
+                if (leftIsTrue) {
                     return !this.toBoolean(expression.right) ? left : false;
-                } break;
+                }
+                break;
         }
         return this.evaluate(expression.right);
     }
@@ -401,7 +423,7 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
     @Override
     public Void visitExpressionStatement(Statement.ExpressionStatement stmt) {
         final Object value = this.evaluate(stmt.expression);
-        if(this.inREPLMode) {
+        if (this.inREPLMode) {
             System.out.println(stringify(value));
         }
         return null;
@@ -423,34 +445,40 @@ public class Interpretter implements Expression.Visitor<Object>, Statement.Visit
 
     @Override
     public Void visitBlockStatement(Statement.BlockStatement block) {
-        this.executeBlock(block.statements, new Context(this.currentScopeContext));
+        this.executeBlock(block, new Context(this.currentScopeContext));
         return null;
     }
 
     @Override
     public Void visitIfStatement(Statement.IfStatement stmt) {
-        if(this.toBoolean(stmt.condition)) {
+        if (this.toBoolean(stmt.condition)) {
+            this.execute(stmt.thenBranch);
             stmt.thenBranch.accept(this);
-        } else if(stmt.elseBranch != null) {
-            stmt.elseBranch.accept(this);
+        } else if (stmt.elseBranch != null) {
+            this.execute(stmt.elseBranch);
         }
         return null;
     }
 
     @Override
     public Void visitLoopStatement(Statement.LoopStatement loop) {
-        Boolean lastConditionEvaluation = this.toBoolean(loop.condition);
-        if(lastConditionEvaluation) {
-            while(lastConditionEvaluation) {
-                loop.body.accept(this);
-                lastConditionEvaluation = this.toBoolean(loop.condition);
+        Boolean lastConditionEvaluation = (loop.condition == null || this.toBoolean(loop.condition));
+        if (lastConditionEvaluation) {
+            while (lastConditionEvaluation) {
+                this.execute(loop.body);
+                lastConditionEvaluation = !this.hasBlockJumpedOut()
+                        && (loop.condition == null || this.toBoolean(loop.condition));
             }
-        } else if(loop.backwardBody != null) {
-            while(!lastConditionEvaluation) {
-                loop.backwardBody.accept(this);
-                lastConditionEvaluation = this.toBoolean(loop.condition);
+        } else if (loop.backwardBody != null) {
+            while (!lastConditionEvaluation) {
+                this.execute(loop.backwardBody);
+                lastConditionEvaluation = !this.hasBlockJumpedOut()
+                        && (loop.condition == null || this.toBoolean(loop.condition));
             }
         }
+
+        // FIX: The for loop jump next (continue) causes infinite loop; It has something
+        // to do with increment step not running due to this.jumps being empty;
         return null;
     }
 }

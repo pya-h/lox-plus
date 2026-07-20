@@ -57,5 +57,8 @@ public enum TokenType {
     LX,
     LOOP,
     BACKWARD,
+    JUMP,
+    JUMP_TYPE_OUT,
+    JUMP_TYPE_NEXT,
     EOF,
 }

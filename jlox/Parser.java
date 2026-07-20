@@ -78,6 +78,18 @@ public class Parser {
                 this.matches(BACKWARD) ? this.statement() : null);
     }
 
+    private Statement jumpStatement() {
+        if(this.matches(JUMP_TYPE_OUT)) {
+            this.expect(SEMICOLON, "Missing ';'!");
+            return new Statement.JumpStatement(true);
+        }
+        if(this.matches(JUMP_TYPE_NEXT)) {
+            this.expect(SEMICOLON, "Missing ';'!");
+            return new Statement.JumpStatement();
+        }
+        throw this.error(this.tokens.get(this.position - 1), "Jump type not specified!");
+    }
+
     private Statement forStatement() {
         // Done by Desugering
         final Statement initializer = this.matches(SEMICOLON) ? null
@@ -144,6 +156,9 @@ public class Parser {
         if (this.matches(FOR)) {
             return this.forStatement();
         }
+        if(this.matches(JUMP)) {
+            return this.jumpStatement();
+        }
         if (this.matches(LEFT_BRACE)) {
             return this.nextBlock();
         }
@@ -163,7 +178,7 @@ public class Parser {
         final Token operator = this.tokens.get(this.position - 1);
         final Expression right = this.assignment();
         if (!(left instanceof Expression.Variable)) {
-            this.error(operator, "Invalid lvalue before assignment!");
+            throw this.error(operator, "Invalid lvalue before assignment!");
         }
         return new Expression.Assignment(((Expression.Variable) left).name, right);
     }

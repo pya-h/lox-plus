@@ -34,6 +34,9 @@ public class Scanner {
         keywords.put("lx", LX);
         keywords.put("loop", LOOP);
         keywords.put("backward", BACKWARD);
+        keywords.put("jump", JUMP);
+        keywords.put("out", JUMP_TYPE_OUT);
+        keywords.put("next", JUMP_TYPE_NEXT);
     }
 
     private final String source;

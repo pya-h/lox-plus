@@ -7,10 +7,15 @@ import jlox.common.Token;
 public abstract class Statement {
 	public interface Visitor<T> {
 		T visitVariableStatement(VariableStatement statement);
+
 		T visitExpressionStatement(ExpressionStatement statement);
+
 		T visitPrintStatement(PrintStatement statement);
+
 		T visitBlockStatement(BlockStatement block);
+
 		T visitIfStatement(IfStatement statement);
+
 		T visitLoopStatement(LoopStatement loop);
 	}
 
@@ -23,8 +28,8 @@ public abstract class Statement {
 			this.expression = expression;
 		}
 
-		@Override<T>
-		T accept(Visitor<T> visitor) {
+		@Override
+		<T> T accept(Visitor<T> visitor) {
 			return visitor.visitVariableStatement(this);
 		}
 	}
@@ -36,8 +41,8 @@ public abstract class Statement {
 			this.expression = expression;
 		}
 
-		@Override<T>
-		T accept(Visitor<T> visitor) {
+		@Override
+		<T> T accept(Visitor<T> visitor) {
 			return visitor.visitExpressionStatement(this);
 		}
 	}
@@ -49,8 +54,8 @@ public abstract class Statement {
 			this.expression = expression;
 		}
 
-		@Override<T>
-		T accept(Visitor<T> visitor) {
+		@Override
+		<T> T accept(Visitor<T> visitor) {
 			return visitor.visitPrintStatement(this);
 		}
 	}
@@ -66,8 +71,8 @@ public abstract class Statement {
 			return new BlockStatement(List.of(statements));
 		}
 
-		@Override<T>
-		T accept(Visitor<T> visitor) {
+		@Override
+		<T> T accept(Visitor<T> visitor) {
 			return visitor.visitBlockStatement(this);
 		}
 	}
@@ -88,8 +93,8 @@ public abstract class Statement {
 			this.elseBranch = null;
 		}
 
-		@Override<T>
-		T accept(Visitor<T> visitor) {
+		@Override
+		<T> T accept(Visitor<T> visitor) {
 			return visitor.visitIfStatement(this);
 		}
 	}
@@ -110,9 +115,26 @@ public abstract class Statement {
 			this.backwardBody = backwardBody;
 		}
 
-		@Override<T>
-		T accept(Visitor<T> visitor) {
+		@Override
+		<T> T accept(Visitor<T> visitor) {
 			return visitor.visitLoopStatement(this);
+		}
+	}
+
+	public static class JumpStatement extends Statement {
+		boolean isJumpOut = false;
+
+		public JumpStatement(boolean isJumpOut) {
+			this.isJumpOut = isJumpOut;
+		}
+
+		public JumpStatement() {
+			this.isJumpOut = false; // JumpNext
+		}
+
+		@Override
+		<T> T accept(Visitor<T> visitor) {
+			return null;
 		}
 	}
 
